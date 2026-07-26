@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Speed Quiz — Tech Lab</title>
+<style>
+  :root{
+    --navy:#12233F; --navy-light:#1B355C; --paper:#EDE6D6;
+    --amber:#FFB627; --coral:#FF6B5E; --mint:#4ECB8D; --line:rgba(255,255,255,.14);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; background:var(--navy);
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:40px 40px;
+    font-family:'Trebuchet MS', sans-serif; color:var(--paper);
+    display:flex; flex-direction:column; align-items:center; padding:24px;
+  }
+  .stamp{position:fixed; bottom:14px; right:18px; font-family:Consolas,'Courier New',monospace;
+    font-size:11px; letter-spacing:1px; border:1px solid var(--amber); color:var(--amber);
+    padding:4px 10px; opacity:.8;}
+  h1{font-size:2.1rem; margin:6px 0 2px;}
+  .sub{font-family:Consolas,'Courier New',monospace; color:var(--amber); font-size:.85rem; margin-bottom:14px;}
+  .setup, .card, .end{
+    background:var(--navy-light); border:2px dashed var(--amber); border-radius:14px;
+    padding:26px; max-width:760px; width:100%; box-shadow:0 8px 26px rgba(0,0,0,.35); text-align:center;
+  }
+  .setup label{display:block; margin:14px 0 6px; font-family:Consolas,monospace; color:var(--amber);}
+  .setup input{padding:8px; border-radius:6px; border:none; width:80px; text-align:center; font-size:1rem;}
+  #teamNames{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:14px;}
+  #teamNames input{width:130px;}
+  .btn{background:var(--amber); color:var(--navy); border:none; border-radius:8px;
+    padding:12px 26px; font-size:1.05rem; font-weight:bold; cursor:pointer; margin-top:16px; margin-right:8px;}
+  .btn.mint{background:var(--mint);}
+  .btn.outline{background:var(--navy); color:var(--paper); border:1px solid var(--amber);}
+  .card{display:none;}
+  .qmeta{font-family:Consolas,monospace; color:var(--amber); margin-bottom:8px;}
+  .timer{font-size:2.4rem; font-weight:bold; margin-bottom:10px;}
+  .timer.low{color:var(--coral);}
+  .question{font-size:1.5rem; margin-bottom:20px;}
+  .choices{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px;}
+  @media(max-width:560px){.choices{grid-template-columns:1fr;}}
+  .choice{background:var(--paper); color:var(--navy); border:none; border-radius:10px;
+    padding:16px; font-size:1.1rem; font-weight:bold; cursor:pointer;}
+  .choice.correct{background:var(--mint);}
+  .choice.wrong{background:var(--coral); color:#2a0e0e;}
+  .scoreboard{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:18px 0;}
+  .team{background:var(--navy); border:1px solid var(--amber); border-radius:8px; padding:8px 14px;}
+  .team .pts{font-size:1.3rem; color:var(--amber); font-weight:bold;}
+  .award{display:flex; flex-wrap:wrap; gap:8px; justify-content:center;}
+  .award button{background:var(--navy); color:var(--paper); border:1px solid var(--amber);
+    border-radius:6px; padding:8px 12px; cursor:pointer;}
+  .end{display:none;}
+  .end h2{font-size:2rem;}
+  .unitBtn{
+    display:block; width:100%; text-align:left; background:var(--paper); color:var(--navy);
+    border:none; border-radius:10px; padding:16px 18px; margin-bottom:12px; font-size:1.1rem;
+    font-weight:bold; cursor:pointer;
+  }
+  .unitBtn small{display:block; font-weight:normal; font-family:Consolas,monospace; font-size:.8rem; margin-top:4px; opacity:.75;}
+</style>
+</head>
+<body>
+  <h1>⚡ Speed Quiz</h1>
+  <div class="sub">SPEED-QUIZ.EXE — TEACHER-RUN BUZZER ROUND</div>
+
+  <div class="setup" id="pickerCard">
+    <p style="font-size:1.2rem; margin-bottom:16px;">Choose a unit to play:</p>
+    <div id="unitList"></div>
+  </div>
+
+  <div class="setup" id="setup" style="display:none;">
+    <p>How many teams are playing?</p>
+    <input type="number" id="teamCount" min="1" max="6" value="3">
+    <button class="btn" id="setTeamsBtn">Set Teams</button>
+    <div id="teamNames"></div>
+    <button class="btn mint" id="startBtn" style="display:none;">Start Quiz</button>
+  </div>
+
+  <div class="card" id="gameCard">
+    <div class="qmeta">Question <span id="qNum">1</span> / <span id="qTotal"></span></div>
+    <div class="timer" id="timer">15</div>
+    <div class="question" id="question"></div>
+    <div class="choices" id="choices"></div>
+    <div class="scoreboard" id="scoreboard"></div>
+    <div id="awardSection" style="display:none;">
+      <p>Who answered correctly? Click a team to award the point:</p>
+      <div class="award" id="awardButtons"></div>
+    </div>
+    <button class="btn mint" id="nextBtn" style="display:none;">Next Question →</button>
+  </div>
+
+  <div class="end" id="endCard">
+    <h2>🏆 Final Scores!</h2>
+    <div class="scoreboard" id="finalScoreboard"></div>
+    <button class="btn" id="restartBtn">Play Again</button>
+    <button class="btn outline" id="switchBtn">Choose Different Unit</button>
+  </div>
+
+  <div class="stamp">TECH LAB · SPEED QUIZ</div>
+
+<script>
+/* =========================================================
+   ADD A NEW UNIT: copy one of the blocks inside `units` below
+   and give it a new key. The link to this game NEVER changes —
+   just re-upload this file with the new unit added and every
+   old link/embed keeps working.
+   ========================================================= */
+const CONFIG = {
+  units: {
+    "moving-machines": {
+      label: "Tech-6 · S03 Moving Machines (Lower Elementary)",
+      timePerQuestion: 15,
+      questions: [
+        { q:"What do you call a built version of an idea that you can test?", choices:["A sensor","A model","A gear","A debug"], correct:1 },
+        { q:"Which part locks teeth with another part to pass on movement?", choices:["Lever","Gear","Straw","Plank"], correct:1 },
+        { q:"What is it called when you find and fix a problem in your build?", choices:["Test","Command","Debug","Model"], correct:2 },
+        { q:"Which part tips like a seesaw to lift something?", choices:["Wheel","Lever","Sensor","Gear"], correct:1 },
+        { q:"What should you always describe after building your machine?", choices:["Its color only","What it does and how it moves","Its price","Its weight only"], correct:1 }
+      ]
+    },
+    "narrative-worldbuilding": {
+      label: "Game Design · E02 Narrative & Worldbuilding (Secondary)",
+      timePerQuestion: 15,
+      questions: [
+        { q:"What do you call a story that always unfolds the same way, with no player choice?", choices:["Branching narrative","Linear narrative","Emergent narrative","Worldbuilding"], correct:1 },
+        { q:"What do you call a story shaped by the player's own actions rather than a script?", choices:["Linear narrative","Branching narrative","Emergent narrative","Theme"], correct:2 },
+        { q:"What is the purpose of a Game Design Document (GDD)?", choices:["To store save files","To plan and guide the team's creative choices","To code the game","To advertise the game"], correct:1 },
+        { q:"What should a branching dialogue tree always avoid?", choices:["Multiple choices","Dead ends and confusing branches","An opening line","A clear goal"], correct:1 },
+        { q:"What does worldbuilding create for a game?", choices:["The game's setting, culture, and history","The game's code","The game's soundtrack","The game's marketing"], correct:0 }
+      ]
+    }
+  }
+};
+/* ========================================================= */
+
+let currentUnit=null, teams=[], scores=[], qIdx=0, timeLeft=0, timerId=null, answered=false;
+
+function showPicker(){
+  document.getElementById('pickerCard').style.display='block';
+  document.getElementById('setup').style.display='none';
+  document.getElementById('gameCard').style.display='none';
+  document.getElementById('endCard').style.display='none';
+  const list = document.getElementById('unitList');
+  list.innerHTML='';
+  Object.entries(CONFIG.units).forEach(([key, unit])=>{
+    const btn = document.createElement('button');
+    btn.className='unitBtn';
+    btn.innerHTML = `${unit.label}<small>${unit.questions.length} questions</small>`;
+    btn.onclick = ()=>{ currentUnit = unit; goToSetup(); };
+    list.appendChild(btn);
+  });
+}
+
+function goToSetup(){
+  document.getElementById('pickerCard').style.display='none';
+  document.getElementById('setup').style.display='block';
+  document.getElementById('qTotal').textContent = currentUnit.questions.length;
+}
+
+document.getElementById('setTeamsBtn').onclick = ()=>{
+  const n = Math.max(1, Math.min(6, +document.getElementById('teamCount').value || 1));
+  const box = document.getElementById('teamNames');
+  box.innerHTML='';
+  for(let i=0;i<n;i++){
+    const inp = document.createElement('input');
+    inp.placeholder = `Team ${i+1}`;
+    inp.id = 'teamInput'+i;
+    box.appendChild(inp);
+  }
+  document.getElementById('startBtn').style.display='inline-block';
+};
+
+document.getElementById('startBtn').onclick = ()=>{
+  teams=[];
+  document.querySelectorAll('[id^=teamInput]').forEach(inp=>{
+    teams.push(inp.value.trim() || inp.placeholder);
+  });
+  scores = teams.map(()=>0);
+  qIdx=0;
+  document.getElementById('setup').style.display='none';
+  document.getElementById('gameCard').style.display='block';
+  loadQuestion();
+};
+
+function renderScoreboard(targetId){
+  const box = document.getElementById(targetId);
+  box.innerHTML='';
+  teams.forEach((t,i)=>{
+    const div = document.createElement('div');
+    div.className='team';
+    div.innerHTML = `${t}<br><span class="pts">${scores[i]}</span>`;
+    box.appendChild(div);
+  });
+}
+
+function loadQuestion(){
+  answered=false;
+  const item = currentUnit.questions[qIdx];
+  document.getElementById('qNum').textContent = qIdx+1;
+  document.getElementById('question').textContent = item.q;
+  document.getElementById('awardSection').style.display='none';
+  document.getElementById('nextBtn').style.display='none';
+  const box = document.getElementById('choices');
+  box.innerHTML='';
+  item.choices.forEach((c,i)=>{
+    const btn = document.createElement('button');
+    btn.className='choice';
+    btn.textContent = c;
+    btn.onclick = ()=>revealAnswer(i);
+    box.appendChild(btn);
+  });
+  renderScoreboard('scoreboard');
+  timeLeft = currentUnit.timePerQuestion;
+  document.getElementById('timer').textContent = timeLeft;
+  document.getElementById('timer').classList.remove('low');
+  clearInterval(timerId);
+  timerId = setInterval(()=>{
+    timeLeft--;
+    document.getElementById('timer').textContent = timeLeft;
+    if(timeLeft<=5) document.getElementById('timer').classList.add('low');
+    if(timeLeft<=0){ clearInterval(timerId); if(!answered) revealAnswer(-1); }
+  },1000);
+}
+
+function revealAnswer(clickedIdx){
+  if(answered) return;
+  answered=true;
+  clearInterval(timerId);
+  const item = currentUnit.questions[qIdx];
+  document.querySelectorAll('.choice').forEach((b,i)=>{
+    if(i===item.correct) b.classList.add('correct');
+    else if(i===clickedIdx) b.classList.add('wrong');
+  });
+  const awardBox = document.getElementById('awardButtons');
+  awardBox.innerHTML='';
+  teams.forEach((t,i)=>{
+    const btn = document.createElement('button');
+    btn.textContent = t;
+    btn.onclick = ()=>{ scores[i]++; renderScoreboard('scoreboard'); };
+    awardBox.appendChild(btn);
+  });
+  document.getElementById('awardSection').style.display='block';
+  document.getElementById('nextBtn').style.display='inline-block';
+}
+
+document.getElementById('nextBtn').onclick = ()=>{
+  qIdx++;
+  if(qIdx < currentUnit.questions.length){ loadQuestion(); }
+  else {
+    document.getElementById('gameCard').style.display='none';
+    document.getElementById('endCard').style.display='block';
+    renderScoreboard('finalScoreboard');
+  }
+};
+
+document.getElementById('restartBtn').onclick = ()=>{
+  qIdx=0;
+  document.getElementById('endCard').style.display='none';
+  document.getElementById('setup').style.display='block';
+  document.getElementById('gameCard').style.display='none';
+};
+document.getElementById('switchBtn').onclick = showPicker;
+
+showPicker();
+</script>
+</body>
+</html>

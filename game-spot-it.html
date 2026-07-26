@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Spot It — Tech Lab</title>
+<style>
+  :root{
+    --navy:#12233F; --navy-light:#1B355C; --paper:#EDE6D6;
+    --amber:#FFB627; --coral:#FF6B5E; --mint:#4ECB8D; --line:rgba(255,255,255,.14);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; background:var(--navy);
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:40px 40px;
+    font-family:'Trebuchet MS', sans-serif; color:var(--paper);
+    display:flex; flex-direction:column; align-items:center; padding:24px;
+  }
+  .stamp{position:fixed; bottom:14px; right:18px; font-family:Consolas,'Courier New',monospace;
+    font-size:11px; letter-spacing:1px; border:1px solid var(--amber); color:var(--amber);
+    padding:4px 10px; opacity:.8;}
+  h1{font-size:2.1rem; margin:6px 0 2px; letter-spacing:.5px;}
+  .sub{font-family:Consolas,'Courier New',monospace; color:var(--amber); font-size:.85rem; margin-bottom:18px;}
+  .scorebar{font-family:Consolas,'Courier New',monospace; font-size:1rem; margin-bottom:14px; color:var(--paper);}
+  .card{
+    background:var(--navy-light); border:2px dashed var(--amber); border-radius:14px;
+    padding:28px; max-width:720px; width:100%; text-align:center; box-shadow:0 8px 26px rgba(0,0,0,.35);
+  }
+  .prompt{font-size:1.5rem; margin-bottom:22px; line-height:1.3;}
+  .choices{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media(max-width:560px){.choices{grid-template-columns:1fr;}}
+  .choice{
+    background:var(--paper); color:var(--navy); border:none; border-radius:10px;
+    padding:20px 12px; font-size:1.15rem; cursor:pointer; font-weight:bold;
+    transition:transform .12s ease; display:flex; flex-direction:column; align-items:center; gap:8px;
+  }
+  .choice:hover{transform:translateY(-3px);}
+  .choice .icon{font-size:2.2rem;}
+  .choice.correct{background:var(--mint); color:var(--navy);}
+  .choice.wrong{background:var(--coral); color:#2a0e0e;}
+  .choice[disabled]{cursor:default;}
+  .explain{margin-top:18px; font-size:1rem; min-height:1.4em; color:var(--amber);}
+  .next-btn{
+    margin-top:18px; background:var(--amber); color:var(--navy); border:none; border-radius:8px;
+    padding:12px 28px; font-size:1.05rem; font-weight:bold; cursor:pointer; display:none;
+  }
+  .end{display:none; text-align:center;}
+  .end h2{font-size:2rem;}
+  .restart{margin-top:12px; background:var(--mint); color:var(--navy); border:none; border-radius:8px;
+    padding:12px 26px; font-size:1rem; font-weight:bold; cursor:pointer; margin-right:8px;}
+  .switch{margin-top:12px; background:var(--navy); color:var(--paper); border:1px solid var(--amber);
+    border-radius:8px; padding:12px 26px; font-size:1rem; font-weight:bold; cursor:pointer;}
+  .unitBtn{
+    display:block; width:100%; text-align:left; background:var(--paper); color:var(--navy);
+    border:none; border-radius:10px; padding:16px 18px; margin-bottom:12px; font-size:1.1rem;
+    font-weight:bold; cursor:pointer;
+  }
+  .unitBtn small{display:block; font-weight:normal; font-family:Consolas,monospace; font-size:.8rem; margin-top:4px; opacity:.75;}
+  .unitBtn:hover{transform:translateY(-2px);}
+</style>
+</head>
+<body>
+  <h1>🔍 Spot It</h1>
+  <div class="sub">SPOT-IT.EXE — CLICK THE RIGHT ANSWER</div>
+
+  <div class="card" id="pickerCard">
+    <p style="font-size:1.2rem; margin-bottom:16px;">Choose a unit to play:</p>
+    <div id="unitList"></div>
+  </div>
+
+  <div class="scorebar" id="scorebar" style="display:none;">Round <span id="roundNum">1</span> / <span id="roundTotal"></span> &nbsp;|&nbsp; Score: <span id="score">0</span></div>
+
+  <div class="card" id="gameCard" style="display:none;">
+    <div class="prompt" id="prompt"></div>
+    <div class="choices" id="choices"></div>
+    <div class="explain" id="explain"></div>
+    <button class="next-btn" id="nextBtn">Next Round →</button>
+  </div>
+
+  <div class="card end" id="endCard">
+    <h2>🎉 Round Complete!</h2>
+    <p id="finalScore"></p>
+    <button class="restart" id="restartBtn">Play Again</button>
+    <button class="switch" id="switchBtn">Choose Different Unit</button>
+  </div>
+
+  <div class="stamp">TECH LAB · SPOT IT</div>
+
+<script>
+/* =========================================================
+   ADD A NEW UNIT: copy one of the blocks inside `units` below
+   and give it a new key (e.g. "e03-visual-audio"). The link to
+   this game NEVER changes — just re-upload this file with the
+   new unit added and every old link/embed keeps working.
+   ========================================================= */
+const CONFIG = {
+  units: {
+    "moving-machines": {
+      label: "Tech-6 · S03 Moving Machines (Lower Elementary)",
+      rounds: [
+        { prompt: "Which part helps a car roll forward?",
+          choices: [
+            {label:"Wheel", icon:"⚙️", correct:false},
+            {label:"Wheel & Axle", icon:"🛞", correct:true},
+            {label:"Lever", icon:"📏", correct:false},
+            {label:"Straw", icon:"🥤", correct:false}
+          ], explain:"Wheels turn on an axle to roll a machine forward!"},
+        { prompt: "Which part lifts something when you push down on one end?",
+          choices: [
+            {label:"Gear", icon:"⚙️", correct:false},
+            {label:"Lever", icon:"📏", correct:true},
+            {label:"Wheel", icon:"🛞", correct:false},
+            {label:"Connector", icon:"🔗", correct:false}
+          ], explain:"A lever tips like a seesaw — push one end down, the other goes up!"},
+        { prompt: "Which parts turn together to move power from one place to another?",
+          choices: [
+            {label:"Gears", icon:"⚙️", correct:true},
+            {label:"Bridge", icon:"🌉", correct:false},
+            {label:"Straws", icon:"🥤", correct:false},
+            {label:"Planks", icon:"🪵", correct:false}
+          ], explain:"Gears have teeth that lock together so one turn makes the next one turn too!"},
+        { prompt: "Which build would best let a boat pass underneath?",
+          choices: [
+            {label:"Solid wall", icon:"🧱", correct:false},
+            {label:"Moving bridge", icon:"🌉", correct:true},
+            {label:"Windmill", icon:"🎡", correct:false},
+            {label:"Car ramp", icon:"🚗", correct:false}
+          ], explain:"A moving bridge can lift or slide open to let boats pass safely."},
+        { prompt: "What makes a windmill's blades spin?",
+          choices: [
+            {label:"A lever", icon:"📏", correct:false},
+            {label:"Moving air (wind or fan)", icon:"💨", correct:true},
+            {label:"A connector", icon:"🔗", correct:false},
+            {label:"Glue", icon:"🧴", correct:false}
+          ], explain:"Wind (or a fan) pushes against the blades and makes them turn!"}
+      ]
+    },
+    "narrative-worldbuilding": {
+      label: "Game Design · E02 Narrative & Worldbuilding (Secondary)",
+      rounds: [
+        { prompt: "A story that always plays out the same way, no matter what the player does, is called a...",
+          choices: [
+            {label:"Linear narrative", icon:"➡️", correct:true},
+            {label:"Branching narrative", icon:"🌳", correct:false},
+            {label:"Emergent narrative", icon:"🌱", correct:false},
+            {label:"Dialogue tree", icon:"💬", correct:false}
+          ], explain:"Linear narratives follow one fixed path — no choices change the outcome."},
+        { prompt: "A story where player choices lead to different paths and endings is called a...",
+          choices: [
+            {label:"Linear narrative", icon:"➡️", correct:false},
+            {label:"Branching narrative", icon:"🌳", correct:true},
+            {label:"Worldbuilding", icon:"🗺️", correct:false},
+            {label:"Story bible", icon:"📖", correct:false}
+          ], explain:"Branching narratives split into multiple paths based on player choices."},
+        { prompt: "A story that forms from how players act, rather than a fixed script, is called...",
+          choices: [
+            {label:"Emergent narrative", icon:"🌱", correct:true},
+            {label:"Linear narrative", icon:"➡️", correct:false},
+            {label:"Theme", icon:"🎭", correct:false},
+            {label:"Narrative arc", icon:"📈", correct:false}
+          ], explain:"Emergent narratives aren't scripted — they arise from gameplay itself."},
+        { prompt: "Which document keeps all story details consistent for the whole team (names, dates, rules)?",
+          choices: [
+            {label:"Mood board", icon:"🖼️", correct:false},
+            {label:"Story bible", icon:"📖", correct:true},
+            {label:"Character profile", icon:"🧑", correct:false},
+            {label:"Dialogue tree", icon:"💬", correct:false}
+          ], explain:"A story bible is the team's shared reference so nobody contradicts the story."},
+        { prompt: "Creating a game's setting, culture, and history is called...",
+          choices: [
+            {label:"Worldbuilding", icon:"🗺️", correct:true},
+            {label:"Player agency", icon:"🎮", correct:false},
+            {label:"Narrative arc", icon:"📈", correct:false},
+            {label:"Backstory", icon:"📜", correct:false}
+          ], explain:"Worldbuilding is designing the world itself — its places, culture, and rules."}
+      ]
+    }
+  }
+};
+/* ========================================================= */
+
+let currentUnit=null, idx=0, score=0;
+
+function showPicker(){
+  document.getElementById('pickerCard').style.display='block';
+  document.getElementById('scorebar').style.display='none';
+  document.getElementById('gameCard').style.display='none';
+  document.getElementById('endCard').style.display='none';
+  const list = document.getElementById('unitList');
+  list.innerHTML='';
+  Object.entries(CONFIG.units).forEach(([key, unit])=>{
+    const btn = document.createElement('button');
+    btn.className='unitBtn';
+    btn.innerHTML = `${unit.label}<small>${unit.rounds.length} rounds</small>`;
+    btn.onclick = ()=>startUnit(key);
+    list.appendChild(btn);
+  });
+}
+
+function startUnit(key){
+  currentUnit = CONFIG.units[key];
+  idx=0; score=0;
+  document.getElementById('pickerCard').style.display='none';
+  document.getElementById('scorebar').style.display='block';
+  document.getElementById('gameCard').style.display='block';
+  document.getElementById('endCard').style.display='none';
+  document.getElementById('roundTotal').textContent = currentUnit.rounds.length;
+  document.getElementById('score').textContent = 0;
+  loadRound();
+}
+
+function loadRound(){
+  const r = currentUnit.rounds[idx];
+  document.getElementById('roundNum').textContent = idx+1;
+  document.getElementById('prompt').textContent = r.prompt;
+  document.getElementById('explain').textContent = '';
+  document.getElementById('nextBtn').style.display = 'none';
+  const box = document.getElementById('choices');
+  box.innerHTML = '';
+  r.choices.forEach(c=>{
+    const btn = document.createElement('button');
+    btn.className = 'choice';
+    btn.innerHTML = `<span class="icon">${c.icon}</span><span>${c.label}</span>`;
+    btn.onclick = ()=>pick(btn, c, r);
+    box.appendChild(btn);
+  });
+}
+
+function pick(btn, c, r){
+  document.querySelectorAll('.choice').forEach(b=>b.disabled=true);
+  if(c.correct){ btn.classList.add('correct'); score++; }
+  else { btn.classList.add('wrong'); document.querySelectorAll('.choice').forEach(b=>{
+      if(r.choices.find(x=>x.label===b.textContent.trim())?.correct) b.classList.add('correct');
+    });
+  }
+  document.getElementById('score').textContent = score;
+  document.getElementById('explain').textContent = r.explain;
+  document.getElementById('nextBtn').style.display = 'inline-block';
+}
+
+document.getElementById('nextBtn').onclick = ()=>{
+  idx++;
+  if(idx < currentUnit.rounds.length){ loadRound(); }
+  else {
+    document.getElementById('gameCard').style.display='none';
+    document.getElementById('scorebar').style.display='none';
+    document.getElementById('endCard').style.display='block';
+    document.getElementById('finalScore').textContent = `Final Score: ${score} / ${currentUnit.rounds.length}`;
+  }
+};
+document.getElementById('restartBtn').onclick = ()=>{
+  idx=0; score=0;
+  document.getElementById('score').textContent = 0;
+  document.getElementById('gameCard').style.display='block';
+  document.getElementById('scorebar').style.display='block';
+  document.getElementById('endCard').style.display='none';
+  loadRound();
+};
+document.getElementById('switchBtn').onclick = showPicker;
+
+showPicker();
+</script>
+</body>
+</html>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sequence Sort — Tech Lab</title>
+<style>
+  :root{
+    --navy:#12233F; --navy-light:#1B355C; --paper:#EDE6D6;
+    --amber:#FFB627; --coral:#FF6B5E; --mint:#4ECB8D; --line:rgba(255,255,255,.14);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; background:var(--navy);
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:40px 40px;
+    font-family:'Trebuchet MS', sans-serif; color:var(--paper);
+    display:flex; flex-direction:column; align-items:center; padding:24px;
+  }
+  .stamp{position:fixed; bottom:14px; right:18px; font-family:Consolas,'Courier New',monospace;
+    font-size:11px; letter-spacing:1px; border:1px solid var(--amber); color:var(--amber);
+    padding:4px 10px; opacity:.8;}
+  h1{font-size:2.1rem; margin:6px 0 2px;}
+  .sub{font-family:Consolas,'Courier New',monospace; color:var(--amber); font-size:.85rem; margin-bottom:14px;}
+  .scorebar{font-family:Consolas,'Courier New',monospace; font-size:1rem; margin-bottom:14px;}
+  .card{
+    background:var(--navy-light); border:2px dashed var(--amber); border-radius:14px;
+    padding:26px; max-width:640px; width:100%; box-shadow:0 8px 26px rgba(0,0,0,.35);
+  }
+  .prompt{font-size:1.3rem; margin-bottom:18px; text-align:center;}
+  .step{
+    background:var(--paper); color:var(--navy); border-radius:10px; padding:14px 16px;
+    margin-bottom:10px; display:flex; align-items:center; gap:12px; font-size:1.05rem; font-weight:bold;
+  }
+  .step.correct{background:var(--mint);}
+  .step.wrong{background:var(--coral); color:#2a0e0e;}
+  .num{background:var(--navy); color:var(--amber); border-radius:6px; width:30px; height:30px;
+    display:flex; align-items:center; justify-content:center; font-family:Consolas,monospace; flex-shrink:0;}
+  .txt{flex:1;}
+  .arrows{display:flex; flex-direction:column; gap:2px;}
+  .arrows button{background:var(--navy); color:var(--paper); border:1px solid var(--amber);
+    border-radius:5px; width:28px; height:24px; cursor:pointer; font-size:.8rem;}
+  .actions{text-align:center; margin-top:18px;}
+  .btn{background:var(--amber); color:var(--navy); border:none; border-radius:8px;
+    padding:12px 26px; font-size:1.05rem; font-weight:bold; cursor:pointer; margin:0 6px;}
+  .btn.mint{background:var(--mint);}
+  .btn.outline{background:var(--navy); color:var(--paper); border:1px solid var(--amber);}
+  .end{display:none; text-align:center;}
+  .end h2{font-size:2rem;}
+  .unitBtn{
+    display:block; width:100%; text-align:left; background:var(--paper); color:var(--navy);
+    border:none; border-radius:10px; padding:16px 18px; margin-bottom:12px; font-size:1.1rem;
+    font-weight:bold; cursor:pointer;
+  }
+  .unitBtn small{display:block; font-weight:normal; font-family:Consolas,monospace; font-size:.8rem; margin-top:4px; opacity:.75;}
+</style>
+</head>
+<body>
+  <h1>🔢 Sequence Sort</h1>
+  <div class="sub">SEQUENCE-SORT.EXE — PUT THE STEPS IN ORDER</div>
+
+  <div class="card" id="pickerCard">
+    <p style="font-size:1.2rem; margin-bottom:16px;">Choose a unit to play:</p>
+    <div id="unitList"></div>
+  </div>
+
+  <div class="scorebar" id="scorebar" style="display:none;">Set <span id="setNum">1</span> / <span id="setTotal"></span> &nbsp;|&nbsp; Score: <span id="score">0</span></div>
+
+  <div class="card" id="gameCard" style="display:none;">
+    <div class="prompt" id="prompt"></div>
+    <div id="steps"></div>
+    <div class="actions">
+      <button class="btn" id="checkBtn">Check Order</button>
+      <button class="btn mint" id="nextBtn" style="display:none;">Next Set →</button>
+    </div>
+  </div>
+
+  <div class="card end" id="endCard">
+    <h2>🎉 All Sets Done!</h2>
+    <p id="finalScore"></p>
+    <button class="btn mint" id="restartBtn">Play Again</button>
+    <button class="btn outline" id="switchBtn">Choose Different Unit</button>
+  </div>
+
+  <div class="stamp">TECH LAB · SEQUENCE SORT</div>
+
+<script>
+/* =========================================================
+   ADD A NEW UNIT: copy one of the blocks inside `units` below
+   and give it a new key. The link to this game NEVER changes —
+   just re-upload this file with the new unit added and every
+   old link/embed keeps working.
+   ========================================================= */
+const CONFIG = {
+  units: {
+    "moving-machines": {
+      label: "Tech-6 · S03 Moving Machines (Lower Elementary)",
+      sets: [
+        { prompt: "Put these steps for building a rolling vehicle in the right order:",
+          steps: [
+            "Gather your building materials (wheels, base, connectors).",
+            "Build the base/body of the vehicle first.",
+            "Attach the axle to the base.",
+            "Attach wheels to the axle so they can spin.",
+            "Test it — give it a push and see if it rolls straight!",
+            "Fix any part that wobbles or doesn't turn, then test again."
+          ]},
+        { prompt: "Put these steps for fixing a broken bridge in the right order:",
+          steps: [
+            "Look at the bridge and figure out what part is broken.",
+            "Talk with your partner about a plan to fix it.",
+            "Gather the materials you'll need.",
+            "Rebuild the broken part using your plan.",
+            "Test the bridge — does it open or hold weight like it should?",
+            "Describe to the class what you fixed and how it works now."
+          ]}
+      ]
+    },
+    "narrative-worldbuilding": {
+      label: "Game Design · E02 Narrative & Worldbuilding (Secondary)",
+      sets: [
+        { prompt: "Put these steps for designing a branching dialogue tree in the right order:",
+          steps: [
+            "Decide the goal of the conversation — what information or choice matters.",
+            "Write the opening line of dialogue.",
+            "Brainstorm 2-3 meaningful choices the player could make.",
+            "Map out where each choice leads next.",
+            "Test the dialogue tree to check it flows logically.",
+            "Fix any dead ends or confusing branches."
+          ]},
+        { prompt: "Put these steps for building a Game Design Document (GDD) in the right order:",
+          steps: [
+            "Gather your character profile, setting description, and story ideas.",
+            "Organize the pieces into sections (characters, setting, story).",
+            "Write clear descriptions that explain your creative choices.",
+            "Add visuals like sketches or mood boards to support the text.",
+            "Review the document with a partner for feedback.",
+            "Revise based on feedback before presenting."
+          ]}
+      ]
+    }
+  }
+};
+/* ========================================================= */
+
+let currentUnit=null, idx=0, score=0, order=[];
+
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+
+function showPicker(){
+  document.getElementById('pickerCard').style.display='block';
+  document.getElementById('scorebar').style.display='none';
+  document.getElementById('gameCard').style.display='none';
+  document.getElementById('endCard').style.display='none';
+  const list = document.getElementById('unitList');
+  list.innerHTML='';
+  Object.entries(CONFIG.units).forEach(([key, unit])=>{
+    const btn = document.createElement('button');
+    btn.className='unitBtn';
+    btn.innerHTML = `${unit.label}<small>${unit.sets.length} sets</small>`;
+    btn.onclick = ()=>startUnit(key);
+    list.appendChild(btn);
+  });
+}
+
+function startUnit(key){
+  currentUnit = CONFIG.units[key];
+  idx=0; score=0;
+  document.getElementById('pickerCard').style.display='none';
+  document.getElementById('scorebar').style.display='block';
+  document.getElementById('gameCard').style.display='block';
+  document.getElementById('endCard').style.display='none';
+  document.getElementById('setTotal').textContent = currentUnit.sets.length;
+  document.getElementById('score').textContent = 0;
+  loadSet();
+}
+
+function loadSet(){
+  const s = currentUnit.sets[idx];
+  document.getElementById('setNum').textContent = idx+1;
+  document.getElementById('prompt').textContent = s.prompt;
+  document.getElementById('nextBtn').style.display='none';
+  document.getElementById('checkBtn').style.display='inline-block';
+  order = shuffle(s.steps);
+  render();
+}
+
+function render(){
+  const box = document.getElementById('steps');
+  box.innerHTML='';
+  order.forEach((txt, i)=>{
+    const div = document.createElement('div');
+    div.className='step';
+    div.innerHTML = `<div class="num">${i+1}</div><div class="txt">${txt}</div>
+      <div class="arrows">
+        <button data-dir="up" data-i="${i}">▲</button>
+        <button data-dir="down" data-i="${i}">▼</button>
+      </div>`;
+    box.appendChild(div);
+  });
+  box.querySelectorAll('button').forEach(b=>{
+    b.onclick = ()=>{
+      const i = +b.dataset.i;
+      const dir = b.dataset.dir;
+      const j = dir==='up' ? i-1 : i+1;
+      if(j<0 || j>=order.length) return;
+      [order[i], order[j]] = [order[j], order[i]];
+      render();
+    };
+  });
+}
+
+document.getElementById('checkBtn').onclick = ()=>{
+  const correct = currentUnit.sets[idx].steps;
+  let allRight = true;
+  document.querySelectorAll('.step').forEach((div, i)=>{
+    if(order[i]===correct[i]){ div.classList.add('correct'); }
+    else { div.classList.add('wrong'); allRight=false; }
+  });
+  if(allRight) score++;
+  document.getElementById('score').textContent = score;
+  document.getElementById('checkBtn').style.display='none';
+  document.getElementById('nextBtn').style.display='inline-block';
+};
+
+document.getElementById('nextBtn').onclick = ()=>{
+  idx++;
+  if(idx < currentUnit.sets.length){ loadSet(); }
+  else {
+    document.getElementById('gameCard').style.display='none';
+    document.getElementById('scorebar').style.display='none';
+    document.getElementById('endCard').style.display='block';
+    document.getElementById('finalScore').textContent = `Final Score: ${score} / ${currentUnit.sets.length}`;
+  }
+};
+document.getElementById('restartBtn').onclick = ()=>{
+  idx=0; score=0;
+  document.getElementById('score').textContent=0;
+  document.getElementById('gameCard').style.display='block';
+  document.getElementById('scorebar').style.display='block';
+  document.getElementById('endCard').style.display='none';
+  loadSet();
+};
+document.getElementById('switchBtn').onclick = showPicker;
+
+showPicker();
+</script>
+</body>
+</html>
