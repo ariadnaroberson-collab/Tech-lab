@@ -176,6 +176,53 @@ const CONFIG = {
             {label:"Backstory", icon:"📜", correct:false}
           ], explain:"Worldbuilding is designing the world itself — its places, culture, and rules."}
       ]
+    },
+    "digital-habits-footprint": {
+      label: "Tech 9-12 · Digital Habits & Footprint (Secondary)",
+      rounds: [
+        { prompt: "Which shortcut instantly reverses your last action in most applications?",
+          choices: [
+            {label:"Ctrl+F", icon:"🔎", correct:false},
+            {label:"Ctrl+Z", icon:"↩️", correct:true},
+            {label:"Ctrl+S", icon:"💾", correct:false},
+            {label:"Ctrl+Tab", icon:"🔀", correct:false}
+          ], explain:"Ctrl+Z (Cmd+Z on Mac) undoes your last action in almost every app."},
+        { prompt: "You need to jump straight to one word on a long webpage. Which shortcut helps?",
+          choices: [
+            {label:"Ctrl+C", icon:"📋", correct:false},
+            {label:"Ctrl+Z", icon:"↩️", correct:false},
+            {label:"Ctrl+F", icon:"🔎", correct:true},
+            {label:"Alt+Tab", icon:"🔀", correct:false}
+          ], explain:"Ctrl+F (Cmd+F on Mac) opens Find so you can jump straight to a word."},
+        { prompt: "Which shortcut captures just part of your screen, not the whole thing?",
+          choices: [
+            {label:"Windows+Shift+S", icon:"✂️", correct:true},
+            {label:"Ctrl+P", icon:"🖨️", correct:false},
+            {label:"Ctrl+S", icon:"💾", correct:false},
+            {label:"Alt+Tab", icon:"🔀", correct:false}
+          ], explain:"Windows+Shift+S (Cmd+Shift+4 on Mac) lets you select exactly the area you want."},
+        { prompt: "A student shares a friend's embarrassing photo online without asking first. This is...",
+          choices: [
+            {label:"Positive digital citizenship", icon:"✅", correct:false},
+            {label:"Risky — posted without consent", icon:"⚠️", correct:true},
+            {label:"Not a footprint issue at all", icon:"🚫", correct:false},
+            {label:"Only the photographer's problem", icon:"🤷", correct:false}
+          ], explain:"Posting about someone without consent can hurt their digital footprint and reputation — always ask first."},
+        { prompt: "Before posting online, which question best protects your digital footprint?",
+          choices: [
+            {label:"Would I be okay with a future employer seeing this?", icon:"✅", correct:true},
+            {label:"Will this get a lot of likes?", icon:"👍", correct:false},
+            {label:"Is it funny?", icon:"😂", correct:false},
+            {label:"Did someone dare me to post it?", icon:"🎯", correct:false}
+          ], explain:"Thinking ahead about who might see a post later is the core of managing a positive digital footprint."},
+        { prompt: "A future employer searches an applicant's name and finds an old, embarrassing post. This shows a digital footprint can...",
+          choices: [
+            {label:"Never resurface", icon:"🚫", correct:false},
+            {label:"Affect real opportunities years later", icon:"⏳", correct:true},
+            {label:"Only affect strangers", icon:"🤷", correct:false},
+            {label:"Be deleted anytime with no trace", icon:"🗑️", correct:false}
+          ], explain:"Old posts can resurface and affect real-life opportunities long after you've forgotten them."}
+      ]
     }
   }
 };
