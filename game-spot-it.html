@@ -221,93 +221,37 @@ const CONFIG = {
             {label:"Affect real opportunities years later", icon:"⏳", correct:true},
             {label:"Only affect strangers", icon:"🤷", correct:false},
             {label:"Be deleted anytime with no trace", icon:"🗑️", correct:false}
-          ], explain:"Old posts can resurface and affect real-life opportunities long after you've forgotten them."}
+          ], explain:"Old posts can resurface and affect real-life opportunities long after you've forgotten them."},
+                { prompt: "Which filename follows good naming convention?",
+          choices: [
+            {label:"asdf123.docx", icon:"❓", correct:false},
+            {label:"2026-08-25_Essay_Draft1.docx", icon:"✅", correct:true},
+            {label:"New Document (3).docx", icon:"🚫", correct:false},
+            {label:"untitled.docx", icon:"🚫", correct:false}
+          ], explain:"Good filenames include a date or version, a clear subject, and no generic auto-generated text."},
+        { prompt: "What's wrong with saving everything directly to your Desktop?",
+          choices: [
+            {label:"Nothing, it's fine for a few files", icon:"🤷", correct:false},
+            {label:"It becomes unsearchable and disorganized as files pile up", icon:"⚠️", correct:true},
+            {label:"Desktop files back up automatically", icon:"☁️", correct:false},
+            {label:"It's the most secure location", icon:"🔒", correct:false}
+          ], explain:"The Desktop isn't a folder system — it's a dumping ground. Without subfolders, finding anything gets harder as the pile grows."},
+        { prompt: "You have 40 photos from a school trip. Best practice is to:",
+          choices: [
+            {label:"Leave them in your camera roll forever", icon:"📱", correct:false},
+            {label:"Put them in a dated, labeled folder", icon:"📁", correct:true},
+            {label:"Rename each one randomly", icon:"🎲", correct:false},
+            {label:"Delete half to save space", icon:"🗑️", correct:false}
+          ], explain:"A dated, labeled folder groups related files together and makes them findable months or years later."},
+        { prompt: "Which folder structure is easiest to navigate?",
+          choices: [
+            {label:"One giant folder with everything mixed together", icon:"🚫", correct:false},
+            {label:"Top-level folders by subject/project, with subfolders inside", icon:"✅", correct:true},
+            {label:"No folders, just search every time", icon:"🔎", correct:false},
+            {label:"A folder named 'Stuff'", icon:"❓", correct:false}
+          ], explain:"A clear hierarchy — broad categories at the top, specifics inside — lets you find files by narrowing down instead of searching blindly."}
       ]
     }
   }
 };
-/* ========================================================= */
-
-let currentUnit=null, idx=0, score=0;
-
-function showPicker(){
-  document.getElementById('pickerCard').style.display='block';
-  document.getElementById('scorebar').style.display='none';
-  document.getElementById('gameCard').style.display='none';
-  document.getElementById('endCard').style.display='none';
-  const list = document.getElementById('unitList');
-  list.innerHTML='';
-  Object.entries(CONFIG.units).forEach(([key, unit])=>{
-    const btn = document.createElement('button');
-    btn.className='unitBtn';
-    btn.innerHTML = `${unit.label}<small>${unit.rounds.length} rounds</small>`;
-    btn.onclick = ()=>startUnit(key);
-    list.appendChild(btn);
-  });
-}
-
-function startUnit(key){
-  currentUnit = CONFIG.units[key];
-  idx=0; score=0;
-  document.getElementById('pickerCard').style.display='none';
-  document.getElementById('scorebar').style.display='block';
-  document.getElementById('gameCard').style.display='block';
-  document.getElementById('endCard').style.display='none';
-  document.getElementById('roundTotal').textContent = currentUnit.rounds.length;
-  document.getElementById('score').textContent = 0;
-  loadRound();
-}
-
-function loadRound(){
-  const r = currentUnit.rounds[idx];
-  document.getElementById('roundNum').textContent = idx+1;
-  document.getElementById('prompt').textContent = r.prompt;
-  document.getElementById('explain').textContent = '';
-  document.getElementById('nextBtn').style.display = 'none';
-  const box = document.getElementById('choices');
-  box.innerHTML = '';
-  r.choices.forEach(c=>{
-    const btn = document.createElement('button');
-    btn.className = 'choice';
-    btn.innerHTML = `<span class="icon">${c.icon}</span><span>${c.label}</span>`;
-    btn.onclick = ()=>pick(btn, c, r);
-    box.appendChild(btn);
-  });
-}
-
-function pick(btn, c, r){
-  document.querySelectorAll('.choice').forEach(b=>b.disabled=true);
-  if(c.correct){ btn.classList.add('correct'); score++; }
-  else { btn.classList.add('wrong'); document.querySelectorAll('.choice').forEach(b=>{
-      if(r.choices.find(x=>x.label===b.textContent.trim())?.correct) b.classList.add('correct');
-    });
-  }
-  document.getElementById('score').textContent = score;
-  document.getElementById('explain').textContent = r.explain;
-  document.getElementById('nextBtn').style.display = 'inline-block';
-}
-
-document.getElementById('nextBtn').onclick = ()=>{
-  idx++;
-  if(idx < currentUnit.rounds.length){ loadRound(); }
-  else {
-    document.getElementById('gameCard').style.display='none';
-    document.getElementById('scorebar').style.display='none';
-    document.getElementById('endCard').style.display='block';
-    document.getElementById('finalScore').textContent = `Final Score: ${score} / ${currentUnit.rounds.length}`;
-  }
-};
-document.getElementById('restartBtn').onclick = ()=>{
-  idx=0; score=0;
-  document.getElementById('score').textContent = 0;
-  document.getElementById('gameCard').style.display='block';
-  document.getElementById('scorebar').style.display='block';
-  document.getElementById('endCard').style.display='none';
-  loadRound();
-};
-document.getElementById('switchBtn').onclick = showPicker;
-
-showPicker();
-</script>
-</body>
-</html>
+    
