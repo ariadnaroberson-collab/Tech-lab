@@ -254,4 +254,84 @@ const CONFIG = {
     }
   }
 };
+let currentUnit=null, roundIdx=0, score=0;
+
+function showPicker(){
+  document.getElementById('pickerCard').style.display='block';
+  document.getElementById('scorebar').style.display='none';
+  document.getElementById('gameCard').style.display='none';
+  document.getElementById('endCard').style.display='none';
+  const list = document.getElementById('unitList');
+  list.innerHTML='';
+  Object.entries(CONFIG.units).forEach(([key, unit])=>{
+    const btn = document.createElement('button');
+    btn.className='unitBtn';
+    btn.innerHTML = `${unit.label}<small>${unit.rounds.length} rounds</small>`;
+    btn.onclick = ()=>{ currentUnit = unit; startUnit(); };
+    list.appendChild(btn);
+  });
+}
+
+function startUnit(){
+  roundIdx=0; score=0;
+  document.getElementById('pickerCard').style.display='none';
+  document.getElementById('scorebar').style.display='block';
+  document.getElementById('gameCard').style.display='block';
+  document.getElementById('endCard').style.display='none';
+  document.getElementById('roundTotal').textContent = currentUnit.rounds.length;
+  loadRound();
+}
+
+function loadRound(){
+  const item = currentUnit.rounds[roundIdx];
+  document.getElementById('roundNum').textContent = roundIdx+1;
+  document.getElementById('score').textContent = score;
+  document.getElementById('prompt').textContent = item.prompt;
+  document.getElementById('explain').textContent = '';
+  document.getElementById('nextBtn').style.display='none';
+  const box = document.getElementById('choices');
+  box.innerHTML='';
+  item.choices.forEach((c,i)=>{
+    const btn = document.createElement('button');
+    btn.className='choice';
+    btn.innerHTML = `<span class="icon">${c.icon}</span><span>${c.label}</span>`;
+    btn.onclick = ()=>selectChoice(i);
+    box.appendChild(btn);
+  });
+}
+
+function selectChoice(i){
+  const item = currentUnit.rounds[roundIdx];
+  const buttons = document.querySelectorAll('#choices .choice');
+  buttons.forEach(b=>b.disabled=true);
+  if(item.choices[i].correct){
+    buttons[i].classList.add('correct');
+    score++;
+    document.getElementById('score').textContent = score;
+  } else {
+    buttons[i].classList.add('wrong');
+    buttons.forEach((b,idx)=>{ if(item.choices[idx].correct) b.classList.add('correct'); });
+  }
+  document.getElementById('explain').textContent = item.explain;
+  document.getElementById('nextBtn').style.display='inline-block';
+}
+
+document.getElementById('nextBtn').onclick = ()=>{
+  roundIdx++;
+  if(roundIdx < currentUnit.rounds.length){ loadRound(); }
+  else {
+    document.getElementById('gameCard').style.display='none';
+    document.getElementById('scorebar').style.display='none';
+    document.getElementById('endCard').style.display='block';
+    document.getElementById('finalScore').textContent = `You scored ${score} / ${currentUnit.rounds.length}`;
+  }
+};
+
+document.getElementById('restartBtn').onclick = ()=>{ startUnit(); };
+document.getElementById('switchBtn').onclick = showPicker;
+
+showPicker();
+</script>
+</body>
+</html>
     
