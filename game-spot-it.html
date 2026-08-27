@@ -251,6 +251,116 @@ const CONFIG = {
             {label:"A folder named 'Stuff'", icon:"❓", correct:false}
           ], explain:"A clear hierarchy — broad categories at the top, specifics inside — lets you find files by narrowing down instead of searching blindly."}
       ]
+    },
+    "digital-literacy": {
+      label: "Digital Literacy",
+      rounds: [
+        { prompt: "What is a \"digital footprint\"?",
+          choices: [
+            {label:"A type of computer virus", icon:"🦠", correct:false},
+            {label:"The trail of information you leave behind online", icon:"👣", correct:true},
+            {label:"A video game", icon:"🎮", correct:false},
+            {label:"Your Wi-Fi password", icon:"🔑", correct:false}
+          ], explain:"Everything you post, like, or search leaves a trail — that trail is your digital footprint."},
+        { prompt: "Which of these is a strong, safe password?",
+          choices: [
+            {label:"123456", icon:"❌", correct:false},
+            {label:"password", icon:"❌", correct:false},
+            {label:"Tigers$Love8Pizza!", icon:"✅", correct:true},
+            {label:"yourname2024", icon:"❌", correct:false}
+          ], explain:"Strong passwords mix letters, numbers, and symbols, and avoid obvious personal info."},
+        { prompt: "Before posting a photo of a friend online, you should always...",
+          choices: [
+            {label:"Post it right away", icon:"📤", correct:false},
+            {label:"Ask your friend for permission first", icon:"🙋", correct:true},
+            {label:"Add a filter", icon:"🎨", correct:false},
+            {label:"Tag their exact location", icon:"📍", correct:false}
+          ], explain:"Asking first protects your friend's privacy and their own digital footprint."},
+        { prompt: "You get a message: \"You won a free iPhone! Click here NOW!\" What should you do?",
+          choices: [
+            {label:"Click it right away", icon:"👆", correct:false},
+            {label:"Ignore or delete it", icon:"🗑️", correct:true},
+            {label:"Reply asking for more info", icon:"💬", correct:false},
+            {label:"Share it with a friend", icon:"➡️", correct:false}
+          ], explain:"Too-good-to-be-true offers like this are almost always scams — never click, just delete."},
+        { prompt: "What does \"netiquette\" mean?",
+          choices: [
+            {label:"A brand of Wi-Fi router", icon:"📶", correct:false},
+            {label:"The rules for being polite and respectful online", icon:"🤝", correct:true},
+            {label:"A social media app", icon:"📱", correct:false},
+            {label:"An internet speed test", icon:"⚡", correct:false}
+          ], explain:"Netiquette is just good manners applied to texts, comments, chats, and emails."},
+        { prompt: "Which of these counts as cyberbullying?",
+          choices: [
+            {label:"Complimenting someone's post", icon:"👍", correct:false},
+            {label:"Repeatedly sending someone mean or threatening messages", icon:"⚠️", correct:true},
+            {label:"Sharing your own artwork", icon:"🎨", correct:false},
+            {label:"Reporting a broken link", icon:"🔗", correct:false}
+          ], explain:"Repeated, targeted meanness online is cyberbullying, even if it 'was just a joke.'"},
+        { prompt: "Using someone else's words or work without giving them credit is called...",
+          choices: [
+            {label:"Citing", icon:"📖", correct:false},
+            {label:"Plagiarism", icon:"🚫", correct:true},
+            {label:"Editing", icon:"✏️", correct:false},
+            {label:"Formatting", icon:"🗂️", correct:false}
+          ], explain:"Plagiarism means passing someone else's work off as your own — always give credit."},
+        { prompt: "Which source is most likely trustworthy for school research?",
+          choices: [
+            {label:"A blog post with no listed author", icon:"❓", correct:false},
+            {label:"A .gov or .edu site that cites its sources", icon:"✅", correct:true},
+            {label:"A random forum comment", icon:"💬", correct:false},
+            {label:"A meme page", icon:"🖼️", correct:false}
+          ], explain:"Reliable sources are transparent about who wrote them and back up their claims with evidence."},
+        { prompt: "A stranger online asks for your home address. You should...",
+          choices: [
+            {label:"Give it if they seem nice", icon:"😊", correct:false},
+            {label:"Never share it, and tell a trusted adult", icon:"🛑", correct:true},
+            {label:"Ask why they want it first", icon:"❓", correct:false},
+            {label:"Give a fake one as a joke", icon:"🤪", correct:false}
+          ], explain:"Personal info like your address should never go to strangers online — tell a trusted adult right away."},
+        { prompt: "What does two-factor authentication (2FA) help protect?",
+          choices: [
+            {label:"Your battery life", icon:"🔋", correct:false},
+            {label:"Your account's security", icon:"🔒", correct:true},
+            {label:"Your internet speed", icon:"⚡", correct:false},
+            {label:"Your screen brightness", icon:"🔆", correct:false}
+          ], explain:"2FA adds a second lock (like a code sent to your phone) so a password alone isn't enough to break in."},
+        { prompt: "You get a friend request from someone you don't know. What's the safest move?",
+          choices: [
+            {label:"Accept — everyone does that", icon:"✅", correct:false},
+            {label:"Decline, or ask a trusted adult first", icon:"🙋", correct:true},
+            {label:"Accept and share your schedule", icon:"📅", correct:false},
+            {label:"Ignore it and hope it goes away", icon:"🙈", correct:false}
+          ], explain:"When you don't know someone in real life, it's safest to decline or check with a trusted adult first."},
+        { prompt: "Before sharing a shocking news story, what should you check first?",
+          choices: [
+            {label:"Nothing — just share it fast", icon:"⚡", correct:false},
+            {label:"Whether it's from a credible, verified source", icon:"🔍", correct:true},
+            {label:"How many likes it already has", icon:"👍", correct:false},
+            {label:"Whether the picture is funny", icon:"😂", correct:false}
+          ], explain:"Checking the source first helps stop misinformation from spreading."},
+        { prompt: "Which of these is an example of \"oversharing\" online?",
+          choices: [
+            {label:"Posting your favorite color", icon:"🎨", correct:false},
+            {label:"Posting your home address and daily schedule", icon:"🚨", correct:true},
+            {label:"Posting a book review", icon:"📚", correct:false},
+            {label:"Posting about a hobby", icon:"⚽", correct:false}
+          ], explain:"Sharing exact location and routine details online can put your safety at risk."},
+        { prompt: "What's the safest way to keep track of an important password?",
+          choices: [
+            {label:"Write it on a sticky note on your monitor", icon:"📝", correct:false},
+            {label:"Use a trusted password manager", icon:"🔐", correct:true},
+            {label:"Use the same password everywhere", icon:"♻️", correct:false},
+            {label:"Text it to a friend", icon:"💬", correct:false}
+          ], explain:"A password manager keeps passwords strong, unique, and secure without you having to memorize them all."},
+        { prompt: "Before clicking a link in an email, what should you check?",
+          choices: [
+            {label:"The color of the email", icon:"🎨", correct:false},
+            {label:"The sender's real address and where the link actually leads", icon:"🔎", correct:true},
+            {label:"What time it was sent", icon:"🕐", correct:false},
+            {label:"The font used", icon:"🔤", correct:false}
+          ], explain:"Scam emails often fake the sender's name — always check the real address and hover over links first."}
+      ]
     }
   }
 };
@@ -334,4 +444,3 @@ showPicker();
 </script>
 </body>
 </html>
-    
