@@ -249,7 +249,35 @@ const CONFIG = {
             {label:"Top-level folders by subject/project, with subfolders inside", icon:"✅", correct:true},
             {label:"No folders, just search every time", icon:"🔎", correct:false},
             {label:"A folder named 'Stuff'", icon:"❓", correct:false}
-          ], explain:"A clear hierarchy — broad categories at the top, specifics inside — lets you find files by narrowing down instead of searching blindly."}
+          ], explain:"A clear hierarchy — broad categories at the top, specifics inside — lets you find files by narrowing down instead of searching blindly."},
+        { prompt: "You need to save a backup copy of an important file. Which is the safest choice?",
+          choices: [
+            {label:"Only keep it on one USB drive", icon:"💾", correct:false},
+            {label:"Save it in the cloud AND on a device", icon:"✅", correct:true},
+            {label:"Email it to yourself and delete the original", icon:"📧", correct:false},
+            {label:"Don't back it up — it's probably fine", icon:"🤷", correct:false}
+          ], explain:"Keeping a copy in more than one place (cloud + device) protects you if one fails or gets lost."},
+        { prompt: "Which shortcut lets you switch between open windows quickly?",
+          choices: [
+            {label:"Alt+Tab", icon:"🔀", correct:true},
+            {label:"Ctrl+Z", icon:"↩️", correct:false},
+            {label:"Ctrl+P", icon:"🖨️", correct:false},
+            {label:"Ctrl+F", icon:"🔎", correct:false}
+          ], explain:"Alt+Tab (Cmd+Tab on Mac) cycles between your open windows or apps."},
+        { prompt: "A classmate is being cyberbullied in a group chat. What's the best digital citizenship response?",
+          choices: [
+            {label:"Screenshot it and join in to fit in", icon:"🚫", correct:false},
+            {label:"Ignore it, it's not your chat", icon:"🤷", correct:false},
+            {label:"Report it and support the classmate", icon:"✅", correct:true},
+            {label:"Leave the chat and say nothing to anyone", icon:"🚪", correct:false}
+          ], explain:"Good digital citizenship means reporting harmful behavior and supporting the person being targeted, not staying silent or joining in."},
+        { prompt: "Ten years from now, a college admissions officer looks up an applicant online. This is an example of...",
+          choices: [
+            {label:"A digital footprint having a real future impact", icon:"✅", correct:true},
+            {label:"Something that can't actually happen", icon:"🚫", correct:false},
+            {label:"Only a concern for adults with jobs", icon:"🤷", correct:false},
+            {label:"A one-time check that never happens again", icon:"❓", correct:false}
+          ], explain:"Digital footprints follow you — admissions officers, employers, and others can look up your online history years later."}
       ]
     },
     "digital-literacy": {
