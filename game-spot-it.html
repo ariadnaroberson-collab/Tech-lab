@@ -389,6 +389,238 @@ const CONFIG = {
             {label:"The font used", icon:"🔤", correct:false}
           ], explain:"Scam emails often fake the sender's name — always check the real address and hover over links first."}
       ]
+    },
+    "excel-e03-c1": {
+      label: "Tech 9-12 · E03 Excel ① Grid, Formats & SUM (after L3)",
+      rounds: [
+        { prompt: "What is the correct address for the cell in column C, row 8?",
+          choices: [
+            {label:"8C", icon:"🔷", correct:false},
+            {label:"CR8", icon:"🔶", correct:false},
+            {label:"C8", icon:"🟢", correct:true},
+            {label:"Row 8 C", icon:"🟣", correct:false}
+          ], explain:"Column letter FIRST, then row number: C8."},
+        { prompt: "How many cells are in the range A1:A4?",
+          choices: [
+            {label:"4", icon:"🔷", correct:true},
+            {label:"2", icon:"🔶", correct:false},
+            {label:"1", icon:"🟢", correct:false},
+            {label:"5", icon:"🟣", correct:false}
+          ], explain:"The colon means 'through': A1, A2, A3, A4 = 4 cells."},
+        { prompt: "Where can you see what is REALLY inside a cell, even after it is formatted?",
+          choices: [
+            {label:"The Name Box", icon:"🔷", correct:false},
+            {label:"The sheet tab", icon:"🔶", correct:false},
+            {label:"The ribbon", icon:"🟢", correct:false},
+            {label:"The formula bar", icon:"🟣", correct:true}
+          ], explain:"The formula bar shows the real value or formula. Formatting only changes the look."},
+        { prompt: "You type 0.15 and format the cell as Percentage. What does it show?",
+          choices: [
+            {label:"0.15%", icon:"🔷", correct:false},
+            {label:"15%", icon:"🔶", correct:true},
+            {label:"150%", icon:"🟢", correct:false},
+            {label:"1.5%", icon:"🟣", correct:false}
+          ], explain:"Percentage multiplies by 100 for the display only: 0.15 shows as 15%."},
+        { prompt: "A date in your sheet shows ##### instead of the date. Why?",
+          choices: [
+            {label:"The column is too narrow", icon:"🔷", correct:true},
+            {label:"The date is wrong", icon:"🔶", correct:false},
+            {label:"Excel is broken", icon:"🟢", correct:false},
+            {label:"You need a formula", icon:"🟣", correct:false}
+          ], explain:"##### just means 'I don't fit!' Double-click the column border to widen it."},
+        { prompt: "Every Excel formula must start with which symbol?",
+          choices: [
+            {label:"+", icon:"🔷", correct:false},
+            {label:"#", icon:"🔶", correct:false},
+            {label:"$", icon:"🟢", correct:false},
+            {label:"=", icon:"🟣", correct:true}
+          ], explain:"No equals sign = Excel thinks you typed plain text."},
+        { prompt: "Which formula adds up the cells B2 through B6?",
+          choices: [
+            {label:"=ADD(B2:B6)", icon:"🔷", correct:false},
+            {label:"=SUM(B2:B6)", icon:"🔶", correct:true},
+            {label:"SUM(B2-B6)", icon:"🟢", correct:false},
+            {label:"=B2:B6", icon:"🟣", correct:false}
+          ], explain:"=SUM( range ) adds a whole range. The colon means 'through'."},
+        { prompt: "Why is =B2+B3 better than typing =5+3?",
+          choices: [
+            {label:"It looks fancier", icon:"🔷", correct:false},
+            {label:"Excel only accepts letters", icon:"🔶", correct:false},
+            {label:"The answer updates by itself when B2 or B3 changes", icon:"🟢", correct:true},
+            {label:"It makes the cell bold", icon:"🟣", correct:false}
+          ], explain:"Cell references keep formulas live. Change a number and every formula using it updates."},
+        { prompt: "What does =AVERAGE(B2:B8) do?",
+          choices: [
+            {label:"Finds the biggest number", icon:"🔷", correct:false},
+            {label:"Counts the cells", icon:"🔶", correct:false},
+            {label:"Adds the numbers only", icon:"🟢", correct:false},
+            {label:"Adds the numbers, then divides by how many there are", icon:"🟣", correct:true}
+          ], explain:"AVERAGE = total ÷ how many. It finds the typical amount."},
+        { prompt: "What does dragging the small square at the corner of a cell (the fill handle) do?",
+          choices: [
+            {label:"Copies the formula to the next cells and adjusts the addresses", icon:"🔷", correct:true},
+            {label:"Deletes the cell", icon:"🔶", correct:false},
+            {label:"Changes the font", icon:"🟢", correct:false},
+            {label:"Locks the cell", icon:"🟣", correct:false}
+          ], explain:"The fill handle copies a formula and moves its range for each new row or column."}
+      ]
+    },
+    "excel-e03-c2": {
+      label: "Tech 9-12 · E03 Excel ② Formulas, Help, Sort & Filter (after L7)",
+      rounds: [
+        { prompt: "Which function finds the FASTEST race time in a list of times?",
+          choices: [
+            {label:"MAX", icon:"🔷", correct:false},
+            {label:"COUNT", icon:"🔶", correct:false},
+            {label:"MIN", icon:"🟢", correct:true},
+            {label:"SUM", icon:"🟣", correct:false}
+          ], explain:"In a race the fastest time is the SMALLEST number, so MIN."},
+        { prompt: "10 cells: 8 have numbers and 2 say \"absent\". What does COUNT give?",
+          choices: [
+            {label:"8", icon:"🔷", correct:true},
+            {label:"10", icon:"🔶", correct:false},
+            {label:"2", icon:"🟢", correct:false},
+            {label:"0", icon:"🟣", correct:false}
+          ], explain:"COUNT only counts cells with numbers. Words and blanks are skipped."},
+        { prompt: "A1 is 65. What does =IF(A1>=70,\"Pass\",\"Try again\") show?",
+          choices: [
+            {label:"Pass", icon:"🔷", correct:false},
+            {label:"65", icon:"🔶", correct:false},
+            {label:"#NAME?", icon:"🟢", correct:false},
+            {label:"Try again", icon:"🟣", correct:true}
+          ], explain:"65 is not >= 70, so the test is FALSE and Excel shows the FALSE answer."},
+        { prompt: "=IF(A1>5,Yes,\"No\") gives #NAME?. What is wrong?",
+          choices: [
+            {label:"The 5 needs quotes", icon:"🔷", correct:false},
+            {label:"Yes needs quotation marks", icon:"🔶", correct:true},
+            {label:"IF must be lowercase", icon:"🟢", correct:false},
+            {label:"There are too many brackets", icon:"🟣", correct:false}
+          ], explain:"Words inside a formula always need \"quotation marks\". Numbers never do."},
+        { prompt: "When does AND give TRUE?",
+          choices: [
+            {label:"When BOTH tests are true", icon:"🔷", correct:true},
+            {label:"When at least one test is true", icon:"🔶", correct:false},
+            {label:"When both tests are false", icon:"🟢", correct:false},
+            {label:"Always", icon:"🟣", correct:false}
+          ], explain:"AND is strict: every test inside it must be TRUE."},
+        { prompt: "What does the error #DIV/0! mean?",
+          choices: [
+            {label:"A function name is misspelled", icon:"🔷", correct:false},
+            {label:"The column is too narrow", icon:"🔶", correct:false},
+            {label:"A word is where a number should be", icon:"🟢", correct:false},
+            {label:"You divided by zero or by an empty cell", icon:"🟣", correct:true}
+          ], explain:"Fill the empty cell (or fix the zero) the formula is dividing by."},
+        { prompt: "A formula multiplies a price by a cell that says \"twelve\". What error appears?",
+          choices: [
+            {label:"#DIV/0!", icon:"🔷", correct:false},
+            {label:"#VALUE!", icon:"🔶", correct:true},
+            {label:"#REF!", icon:"🟢", correct:false},
+            {label:"#####", icon:"🟣", correct:false}
+          ], explain:"#VALUE! means Excel found the wrong kind of data — a word where it needed a number."},
+        { prompt: "Your formula shows an error. What is the BEST first move?",
+          choices: [
+            {label:"Delete the whole sheet", icon:"🔷", correct:false},
+            {label:"Restart the computer", icon:"🔶", correct:false},
+            {label:"Read the error, then search it in Help", icon:"🟢", correct:true},
+            {label:"Copy a friend's answer", icon:"🟣", correct:false}
+          ], explain:"READ → SEARCH → FIX → CHECK. Help (or the Search box at the top) explains every error."},
+        { prompt: "Sorting a price column from LARGEST to SMALLEST is called…",
+          choices: [
+            {label:"Ascending", icon:"🔷", correct:false},
+            {label:"Filtering", icon:"🔶", correct:false},
+            {label:"Custom", icon:"🟢", correct:false},
+            {label:"Descending", icon:"🟣", correct:true}
+          ], explain:"Descending = biggest first (or Z → A). Ascending = smallest first (or A → Z)."},
+        { prompt: "What happens to the rows a filter does not show?",
+          choices: [
+            {label:"They are hidden until you clear the filter", icon:"🔷", correct:true},
+            {label:"They are deleted forever", icon:"🔶", correct:false},
+            {label:"They move to a new sheet", icon:"🟢", correct:false},
+            {label:"They turn red", icon:"🟣", correct:false}
+          ], explain:"Filters only hide rows. Sort & Filter → Clear brings everything back."},
+        { prompt: "You want to sort by Genre, and INSIDE each genre by Rating. Which tool?",
+          choices: [
+            {label:"Sort Ascending", icon:"🔷", correct:false},
+            {label:"Filter", icon:"🔶", correct:false},
+            {label:"Custom Sort with Add Level", icon:"🟢", correct:true},
+            {label:"COUNT", icon:"🟣", correct:false}
+          ], explain:"Custom Sort lets you add a second level: first by Genre, then by Rating."}
+      ]
+    },
+    "excel-e03-c3": {
+      label: "Tech 9-12 · E03 Excel ③ Charts, Protection & Sharing (after L10)",
+      rounds: [
+        { prompt: "Which chart is best for showing how something CHANGES over time?",
+          choices: [
+            {label:"Pie", icon:"🔷", correct:false},
+            {label:"Text box", icon:"🔶", correct:false},
+            {label:"Line", icon:"🟢", correct:true},
+            {label:"Bar with long names", icon:"🟣", correct:false}
+          ], explain:"Line charts show change over time — week to week, month to month."},
+        { prompt: "When should you use a pie chart?",
+          choices: [
+            {label:"When the parts make ONE whole", icon:"🔷", correct:true},
+            {label:"Any time you have numbers", icon:"🔶", correct:false},
+            {label:"To show change over time", icon:"🟢", correct:false},
+            {label:"To compare 20 different items", icon:"🟣", correct:false}
+          ], explain:"Pie = slices of one whole, like how a budget is split up."},
+        { prompt: "You want to explain what your chart shows, right next to it. What do you add?",
+          choices: [
+            {label:"A comment", icon:"🔷", correct:false},
+            {label:"A filter", icon:"🔶", correct:false},
+            {label:"A new sheet", icon:"🟢", correct:false},
+            {label:"A text box (Insert → Shapes → Text Box)", icon:"🟣", correct:true}
+          ], explain:"A chart SHOWS, a text box EXPLAINS."},
+        { prompt: "What is the legend on a chart?",
+          choices: [
+            {label:"The chart's title", icon:"🔷", correct:false},
+            {label:"The key that shows which color is which data", icon:"🔶", correct:true},
+            {label:"The numbers on the side", icon:"🟢", correct:false},
+            {label:"A comment", icon:"🟣", correct:false}
+          ], explain:"The legend tells the reader which color belongs to which series (e.g. Grade 9, Grade 10)."},
+        { prompt: "You want a cell to turn red AUTOMATICALLY when money left is below 0. Which feature?",
+          choices: [
+            {label:"Conditional formatting", icon:"🔷", correct:true},
+            {label:"Fill color", icon:"🔶", correct:false},
+            {label:"Cell protection", icon:"🟢", correct:false},
+            {label:"Sort", icon:"🟣", correct:false}
+          ], explain:"Conditional formatting watches the numbers and changes the look by itself."},
+        { prompt: "Where do you turn on sheet protection in Excel for the web?",
+          choices: [
+            {label:"Home → Bold", icon:"🔷", correct:false},
+            {label:"Insert → Chart", icon:"🔶", correct:false},
+            {label:"Data → Sort", icon:"🟢", correct:false},
+            {label:"Review → Manage Protection", icon:"🟣", correct:true}
+          ], explain:"Review → Manage Protection → turn ON Protect sheet, then add the ranges people may edit."},
+        { prompt: "After you protect a sheet, which cells should stay editable?",
+          choices: [
+            {label:"The formula cells", icon:"🔷", correct:false},
+            {label:"Only the input cells people need to type in", icon:"🔶", correct:true},
+            {label:"The title", icon:"🟢", correct:false},
+            {label:"None — no one can type at all", icon:"🟣", correct:false}
+          ], explain:"Protect the formulas, leave only the input cells open."},
+        { prompt: "In a shared file, how do you make sure a classmate SEES your comment?",
+          choices: [
+            {label:"Type in capital letters", icon:"🔷", correct:false},
+            {label:"Make the cell red", icon:"🔶", correct:false},
+            {label:"Type @ and their name in the comment", icon:"🟢", correct:true},
+            {label:"Email the file", icon:"🟣", correct:false}
+          ], explain:"An @mention sends them a notification."},
+        { prompt: "You need to see WHO changed cell E14, WHAT it was before, and WHEN. Which tool?",
+          choices: [
+            {label:"Version History", icon:"🔷", correct:false},
+            {label:"Conditional formatting", icon:"🔶", correct:false},
+            {label:"Filter", icon:"🟢", correct:false},
+            {label:"Show Changes", icon:"🟣", correct:true}
+          ], explain:"Show Changes lists each edit: who, what (old → new) and when. Right-click a cell → Show Changes for just that cell."},
+        { prompt: "The whole file got messed up. You want it back exactly how it was yesterday. Which tool?",
+          choices: [
+            {label:"Version History", icon:"🔷", correct:true},
+            {label:"Show Changes", icon:"🔶", correct:false},
+            {label:"Undo once", icon:"🟢", correct:false},
+            {label:"Protect sheet", icon:"🟣", correct:false}
+          ], explain:"Version History keeps whole snapshots of the file you can open or restore."}
+      ]
     }
   }
 };

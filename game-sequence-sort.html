@@ -192,6 +192,116 @@ const CONFIG = {
             "Check that the file opens correctly on the computer."
           ]}
       ]
+    },
+    "excel-e03-c1": {
+      label: "Tech 9-12 · E03 Excel ① Grid, Formats & SUM (after L3)",
+      sets: [
+        { prompt: "Put these steps for jumping to a cell with the Name Box in order:",
+          steps: [
+            "Look at the address you need, like H12.",
+            "Click inside the Name Box (top left, above column A).",
+            "Type the address: H12.",
+            "Press Enter.",
+            "Read what is in the cell Excel jumped to."
+          ]},
+        { prompt: "Put these steps for formatting prices as money in order:",
+          steps: [
+            "Select the cells with the prices.",
+            "Go to the Home tab.",
+            "Open the Number Format drop-down (it says General).",
+            "Choose Currency.",
+            "Check that every price shows $ and 2 decimal places."
+          ]},
+        { prompt: "Put these steps for adding a column with SUM in order:",
+          steps: [
+            "Click the empty cell where the total should go.",
+            "Type =SUM(",
+            "Type or drag the range, like B2:B6.",
+            "Type the closing bracket )",
+            "Press Enter and check the answer makes sense."
+          ]},
+        { prompt: "Put these steps for copying a formula with the fill handle in order:",
+          steps: [
+            "Click the cell that already has the formula.",
+            "Point at the small square in its bottom-right corner.",
+            "Drag across (or down) to the cells that need the formula.",
+            "Let go of the mouse.",
+            "Click one copied cell and check its range moved too."
+          ]}
+      ]
+    },
+    "excel-e03-c2": {
+      label: "Tech 9-12 · E03 Excel ② Formulas, Help, Sort & Filter (after L7)",
+      sets: [
+        { prompt: "Put the parts of this IF formula in the order you type them:",
+          steps: [
+            "=IF(",
+            "the test: B2<=150",
+            ",\"Buy it!\"  (the TRUE answer)",
+            ",\"Keep saving\"  (the FALSE answer)",
+            ")  then press Enter"
+          ]},
+        { prompt: "Put the error-fixing routine in order:",
+          steps: [
+            "READ the error the cell shows (e.g. #DIV/0!).",
+            "SEARCH the error in Help or the Search box at the top.",
+            "FIX the cause (fill the empty cell, add quotes, retype the name…).",
+            "CHECK that the cell now shows a real answer."
+          ]},
+        { prompt: "Put these steps for a Custom Sort in order:",
+          steps: [
+            "Click ONE cell inside the table.",
+            "Home → Sort & Filter → Custom Sort.",
+            "Choose the first column to sort by and its order.",
+            "Click Add Level and choose the second column.",
+            "Click OK and check the rows stayed together."
+          ]},
+        { prompt: "Put these steps for using a Filter in order:",
+          steps: [
+            "Click ONE cell inside the table.",
+            "Home → Sort & Filter → Filter.",
+            "Click the arrow on a column heading.",
+            "Untick Select All, tick only what you want, click OK.",
+            "Answer your question, then Sort & Filter → Clear."
+          ]}
+      ]
+    },
+    "excel-e03-c3": {
+      label: "Tech 9-12 · E03 Excel ③ Charts, Protection & Sharing (after L10)",
+      sets: [
+        { prompt: "Put these steps for building a chart in order:",
+          steps: [
+            "Select the data, INCLUDING the headings.",
+            "Insert → choose a chart type (e.g. Column).",
+            "Give the chart a real title.",
+            "Insert → Shapes → Text Box next to the chart.",
+            "Write 1–2 sentences explaining what the chart shows."
+          ]},
+        { prompt: "Put these steps for protecting a sheet in order:",
+          steps: [
+            "Review → Manage Protection.",
+            "Turn ON Protect sheet.",
+            "Add the range people may still edit (the input cells).",
+            "Save / close the protection pane.",
+            "Test it: try typing in a formula cell — it should be blocked."
+          ]},
+        { prompt: "Put these steps for a comment conversation in order:",
+          steps: [
+            "Right-click the cell → New Comment.",
+            "Type @ and your classmate's name.",
+            "Write a kind, specific message and post it.",
+            "Your classmate gets notified and replies.",
+            "When the conversation is done, Resolve the thread."
+          ]},
+        { prompt: "Put these steps for investigating a change in a shared file in order:",
+          steps: [
+            "Notice a value that looks wrong.",
+            "Review → Show Changes.",
+            "Find that cell in the Changes pane.",
+            "Read WHO changed it, the OLD value, and WHEN.",
+            "Put the correct value back."
+          ]}
+      ]
     }
   }
 };
