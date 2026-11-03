@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Spot It — Tech Lab</title>
+<style>
+  :root{
+    --navy:#12233F; --navy-light:#1B355C; --paper:#EDE6D6;
+    --amber:#FFB627; --coral:#FF6B5E; --mint:#4ECB8D; --line:rgba(255,255,255,.14);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; background:var(--navy);
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:40px 40px;
+    font-family:'Trebuchet MS', sans-serif; color:var(--paper);
+    display:flex; flex-direction:column; align-items:center; padding:24px;
+  }
+  .stamp{position:fixed; bottom:14px; right:18px; font-family:Consolas,'Courier New',monospace;
+    font-size:11px; letter-spacing:1px; border:1px solid var(--amber); color:var(--amber);
+    padding:4px 10px; opacity:.8;}
+  h1{font-size:2.1rem; margin:6px 0 2px; letter-spacing:.5px;}
+  .sub{font-family:Consolas,'Courier New',monospace; color:var(--amber); font-size:.85rem; margin-bottom:18px;}
+  .scorebar{font-family:Consolas,'Courier New',monospace; font-size:1rem; margin-bottom:14px; color:var(--paper);}
+  .card{
+    background:var(--navy-light); border:2px dashed var(--amber); border-radius:14px;
+    padding:28px; max-width:720px; width:100%; text-align:center; box-shadow:0 8px 26px rgba(0,0,0,.35);
+  }
+  .prompt{font-size:1.5rem; margin-bottom:22px; line-height:1.3;}
+  .choices{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media(max-width:560px){.choices{grid-template-columns:1fr;}}
+  .choice{
+    background:var(--paper); color:var(--navy); border:none; border-radius:10px;
+    padding:20px 12px; font-size:1.15rem; cursor:pointer; font-weight:bold;
+    transition:transform .12s ease; display:flex; flex-direction:column; align-items:center; gap:8px;
+  }
+  .choice:hover{transform:translateY(-3px);}
+  .choice .icon{font-size:2.2rem;}
+  .choice.correct{background:var(--mint); color:var(--navy);}
+  .choice.wrong{background:var(--coral); color:#2a0e0e;}
+  .choice[disabled]{cursor:default;}
+  .explain{margin-top:18px; font-size:1rem; min-height:1.4em; color:var(--amber);}
+  .next-btn{
+    margin-top:18px; background:var(--amber); color:var(--navy); border:none; border-radius:8px;
+    padding:12px 28px; font-size:1.05rem; font-weight:bold; cursor:pointer; display:none;
+  }
+  .end{display:none; text-align:center;}
+  .end h2{font-size:2rem;}
+  .restart{margin-top:12px; background:var(--mint); color:var(--navy); border:none; border-radius:8px;
+    padding:12px 26px; font-size:1rem; font-weight:bold; cursor:pointer; margin-right:8px;}
+  .switch{margin-top:12px; background:var(--navy); color:var(--paper); border:1px solid var(--amber);
+    border-radius:8px; padding:12px 26px; font-size:1rem; font-weight:bold; cursor:pointer;}
+  .unitBtn{
+    display:block; width:100%; text-align:left; background:var(--paper); color:var(--navy);
+    border:none; border-radius:10px; padding:16px 18px; margin-bottom:12px; font-size:1.1rem;
+    font-weight:bold; cursor:pointer;
+  }
+  .unitBtn small{display:block; font-weight:normal; font-family:Consolas,monospace; font-size:.8rem; margin-top:4px; opacity:.75;}
+  .unitBtn:hover{transform:translateY(-2px);}
+</style>
+</head>
+<body>
+  <h1>🔍 Spot It</h1>
+  <div class="sub">SPOT-IT.EXE — CLICK THE RIGHT ANSWER</div>
+
+  <div class="card" id="pickerCard">
+    <p style="font-size:1.2rem; margin-bottom:16px;">Choose a unit to play:</p>
+    <div id="unitList"></div>
+  </div>
+
+  <div class="scorebar" id="scorebar" style="display:none;">Round <span id="roundNum">1</span> / <span id="roundTotal"></span> &nbsp;|&nbsp; Score: <span id="score">0</span></div>
+
+  <div class="card" id="gameCard" style="display:none;">
+    <div class="prompt" id="prompt"></div>
+    <div class="choices" id="choices"></div>
+    <div class="explain" id="explain"></div>
+    <button class="next-btn" id="nextBtn">Next Round →</button>
+  </div>
+
+  <div class="card end" id="endCard">
+    <h2>🎉 Round Complete!</h2>
+    <p id="finalScore"></p>
+    <button class="restart" id="restartBtn">Play Again</button>
+    <button class="switch" id="switchBtn">Choose Different Unit</button>
+  </div>
+
+  <div class="stamp">TECH LAB · SPOT IT</div>
+
+<script>
+/* =========================================================
+   ADD A NEW UNIT: copy one of the blocks inside `units` below
+   and give it a new key (e.g. "e03-visual-audio"). The link to
+   this game NEVER changes — just re-upload this file with the
+   new unit added and every old link/embed keeps working.
+   ========================================================= */
+const CONFIG = {
+  units: {
+    "moving-machines": {
+      label: "Tech-6 · S03 Moving Machines (Lower Elementary)",
+      rounds: [
+        { prompt: "Which part helps a car roll forward?",
+          choices: [
+            {label:"Wheel", icon:"⚙️", correct:false},
+            {label:"Wheel & Axle", icon:"🛞", correct:true},
+            {label:"Lever", icon:"📏", correct:false},
+            {label:"Straw", icon:"🥤", correct:false}
+          ], explain:"Wheels turn on an axle to roll a machine forward!"},
+        { prompt: "Which part lifts something when you push down on one end?",
+          choices: [
+            {label:"Gear", icon:"⚙️", correct:false},
+            {label:"Lever", icon:"📏", correct:true},
+            {label:"Wheel", icon:"🛞", correct:false},
+            {label:"Connector", icon:"🔗", correct:false}
+          ], explain:"A lever tips like a seesaw — push one end down, the other goes up!"},
+        { prompt: "Which parts turn together to move power from one place to another?",
+          choices: [
+            {label:"Gears", icon:"⚙️", correct:true},
+            {label:"Bridge", icon:"🌉", correct:false},
+            {label:"Straws", icon:"🥤", correct:false},
+            {label:"Planks", icon:"🪵", correct:false}
+          ], explain:"Gears have teeth that lock together so one turn makes the next one turn too!"},
+        { prompt: "Which build would best let a boat pass underneath?",
+          choices: [
+            {label:"Solid wall", icon:"🧱", correct:false},
+            {label:"Moving bridge", icon:"🌉", correct:true},
+            {label:"Windmill", icon:"🎡", correct:false},
+            {label:"Car ramp", icon:"🚗", correct:false}
+          ], explain:"A moving bridge can lift or slide open to let boats pass safely."},
+        { prompt: "What makes a windmill's blades spin?",
+          choices: [
+            {label:"A lever", icon:"📏", correct:false},
+            {label:"Moving air (wind or fan)", icon:"💨", correct:true},
+            {label:"A connector", icon:"🔗", correct:false},
+            {label:"Glue", icon:"🧴", correct:false}
+          ], explain:"Wind (or a fan) pushes against the blades and makes them turn!"}
+      ]
+    },
+    "narrative-worldbuilding": {
+      label: "Game Design · E02 Narrative & Worldbuilding (Secondary)",
+      rounds: [
+        { prompt: "A story that always plays out the same way, no matter what the player does, is called a...",
+          choices: [
+            {label:"Linear narrative", icon:"➡️", correct:true},
+            {label:"Branching narrative", icon:"🌳", correct:false},
+            {label:"Emergent narrative", icon:"🌱", correct:false},
+            {label:"Dialogue tree", icon:"💬", correct:false}
+          ], explain:"Linear narratives follow one fixed path — no choices change the outcome."},
+        { prompt: "A story where player choices lead to different paths and endings is called a...",
+          choices: [
+            {label:"Linear narrative", icon:"➡️", correct:false},
+            {label:"Branching narrative", icon:"🌳", correct:true},
+            {label:"Worldbuilding", icon:"🗺️", correct:false},
+            {label:"Story bible", icon:"📖", correct:false}
+          ], explain:"Branching narratives split into multiple paths based on player choices."},
+        { prompt: "A story that forms from how players act, rather than a fixed script, is called...",
+          choices: [
+            {label:"Emergent narrative", icon:"🌱", correct:true},
+            {label:"Linear narrative", icon:"➡️", correct:false},
+            {label:"Theme", icon:"🎭", correct:false},
+            {label:"Narrative arc", icon:"📈", correct:false}
+          ], explain:"Emergent narratives aren't scripted — they arise from gameplay itself."},
+        { prompt: "Which document keeps all story details consistent for the whole team (names, dates, rules)?",
+          choices: [
+            {label:"Mood board", icon:"🖼️", correct:false},
+            {label:"Story bible", icon:"📖", correct:true},
+            {label:"Character profile", icon:"🧑", correct:false},
+            {label:"Dialogue tree", icon:"💬", correct:false}
+          ], explain:"A story bible is the team's shared reference so nobody contradicts the story."},
+        { prompt: "Creating a game's setting, culture, and history is called...",
+          choices: [
+            {label:"Worldbuilding", icon:"🗺️", correct:true},
+            {label:"Player agency", icon:"🎮", correct:false},
+            {label:"Narrative arc", icon:"📈", correct:false},
+            {label:"Backstory", icon:"📜", correct:false}
+          ], explain:"Worldbuilding is designing the world itself — its places, culture, and rules."}
+      ]
+    },
+    "digital-habits-footprint": {
+      label: "Tech 9-12 · Digital Habits & Footprint (Secondary)",
+      rounds: [
+        { prompt: "Which shortcut instantly reverses your last action in most applications?",
+          choices: [
+            {label:"Ctrl+F", icon:"🔎", correct:false},
+            {label:"Ctrl+Z", icon:"↩️", correct:true},
+            {label:"Ctrl+S", icon:"💾", correct:false},
+            {label:"Ctrl+Tab", icon:"🔀", correct:false}
+          ], explain:"Ctrl+Z (Cmd+Z on Mac) undoes your last action in almost every app."},
+        { prompt: "You need to jump straight to one word on a long webpage. Which shortcut helps?",
+          choices: [
+            {label:"Ctrl+C", icon:"📋", correct:false},
+            {label:"Ctrl+Z", icon:"↩️", correct:false},
+            {label:"Ctrl+F", icon:"🔎", correct:true},
+            {label:"Alt+Tab", icon:"🔀", correct:false}
+          ], explain:"Ctrl+F (Cmd+F on Mac) opens Find so you can jump straight to a word."},
+        { prompt: "Which shortcut captures just part of your screen, not the whole thing?",
+          choices: [
+            {label:"Windows+Shift+S", icon:"✂️", correct:true},
+            {label:"Ctrl+P", icon:"🖨️", correct:false},
+            {label:"Ctrl+S", icon:"💾", correct:false},
+            {label:"Alt+Tab", icon:"🔀", correct:false}
+          ], explain:"Windows+Shift+S (Cmd+Shift+4 on Mac) lets you select exactly the area you want."},
+        { prompt: "A student shares a friend's embarrassing photo online without asking first. This is...",
+          choices: [
+            {label:"Positive digital citizenship", icon:"✅", correct:false},
+            {label:"Risky — posted without consent", icon:"⚠️", correct:true},
+            {label:"Not a footprint issue at all", icon:"🚫", correct:false},
+            {label:"Only the photographer's problem", icon:"🤷", correct:false}
+          ], explain:"Posting about someone without consent can hurt their digital footprint and reputation — always ask first."},
+        { prompt: "Before posting online, which question best protects your digital footprint?",
+          choices: [
+            {label:"Would I be okay with a future employer seeing this?", icon:"✅", correct:true},
+            {label:"Will this get a lot of likes?", icon:"👍", correct:false},
+            {label:"Is it funny?", icon:"😂", correct:false},
+            {label:"Did someone dare me to post it?", icon:"🎯", correct:false}
+          ], explain:"Thinking ahead about who might see a post later is the core of managing a positive digital footprint."},
+        { prompt: "A future employer searches an applicant's name and finds an old, embarrassing post. This shows a digital footprint can...",
+          choices: [
+            {label:"Never resurface", icon:"🚫", correct:false},
+            {label:"Affect real opportunities years later", icon:"⏳", correct:true},
+            {label:"Only affect strangers", icon:"🤷", correct:false},
+            {label:"Be deleted anytime with no trace", icon:"🗑️", correct:false}
+          ], explain:"Old posts can resurface and affect real-life opportunities long after you've forgotten them."},
+                { prompt: "Which filename follows good naming convention?",
+          choices: [
+            {label:"asdf123.docx", icon:"❓", correct:false},
+            {label:"2026-08-25_Essay_Draft1.docx", icon:"✅", correct:true},
+            {label:"New Document (3).docx", icon:"🚫", correct:false},
+            {label:"untitled.docx", icon:"🚫", correct:false}
+          ], explain:"Good filenames include a date or version, a clear subject, and no generic auto-generated text."},
+        { prompt: "What's wrong with saving everything directly to your Desktop?",
+          choices: [
+            {label:"Nothing, it's fine for a few files", icon:"🤷", correct:false},
+            {label:"It becomes unsearchable and disorganized as files pile up", icon:"⚠️", correct:true},
+            {label:"Desktop files back up automatically", icon:"☁️", correct:false},
+            {label:"It's the most secure location", icon:"🔒", correct:false}
+          ], explain:"The Desktop isn't a folder system — it's a dumping ground. Without subfolders, finding anything gets harder as the pile grows."},
+        { prompt: "You have 40 photos from a school trip. Best practice is to:",
+          choices: [
+            {label:"Leave them in your camera roll forever", icon:"📱", correct:false},
+            {label:"Put them in a dated, labeled folder", icon:"📁", correct:true},
+            {label:"Rename each one randomly", icon:"🎲", correct:false},
+            {label:"Delete half to save space", icon:"🗑️", correct:false}
+          ], explain:"A dated, labeled folder groups related files together and makes them findable months or years later."},
+        { prompt: "Which folder structure is easiest to navigate?",
+          choices: [
+            {label:"One giant folder with everything mixed together", icon:"🚫", correct:false},
+            {label:"Top-level folders by subject/project, with subfolders inside", icon:"✅", correct:true},
+            {label:"No folders, just search every time", icon:"🔎", correct:false},
+            {label:"A folder named 'Stuff'", icon:"❓", correct:false}
+          ], explain:"A clear hierarchy — broad categories at the top, specifics inside — lets you find files by narrowing down instead of searching blindly."},
+        { prompt: "You need to save a backup copy of an important file. Which is the safest choice?",
+          choices: [
+            {label:"Only keep it on one USB drive", icon:"💾", correct:false},
+            {label:"Save it in the cloud AND on a device", icon:"✅", correct:true},
+            {label:"Email it to yourself and delete the original", icon:"📧", correct:false},
+            {label:"Don't back it up — it's probably fine", icon:"🤷", correct:false}
+          ], explain:"Keeping a copy in more than one place (cloud + device) protects you if one fails or gets lost."},
+        { prompt: "Which shortcut lets you switch between open windows quickly?",
+          choices: [
+            {label:"Alt+Tab", icon:"🔀", correct:true},
+            {label:"Ctrl+Z", icon:"↩️", correct:false},
+            {label:"Ctrl+P", icon:"🖨️", correct:false},
+            {label:"Ctrl+F", icon:"🔎", correct:false}
+          ], explain:"Alt+Tab (Cmd+Tab on Mac) cycles between your open windows or apps."},
+        { prompt: "A classmate is being cyberbullied in a group chat. What's the best digital citizenship response?",
+          choices: [
+            {label:"Screenshot it and join in to fit in", icon:"🚫", correct:false},
+            {label:"Ignore it, it's not your chat", icon:"🤷", correct:false},
+            {label:"Report it and support the classmate", icon:"✅", correct:true},
+            {label:"Leave the chat and say nothing to anyone", icon:"🚪", correct:false}
+          ], explain:"Good digital citizenship means reporting harmful behavior and supporting the person being targeted, not staying silent or joining in."},
+        { prompt: "Ten years from now, a college admissions officer looks up an applicant online. This is an example of...",
+          choices: [
+            {label:"A digital footprint having a real future impact", icon:"✅", correct:true},
+            {label:"Something that can't actually happen", icon:"🚫", correct:false},
+            {label:"Only a concern for adults with jobs", icon:"🤷", correct:false},
+            {label:"A one-time check that never happens again", icon:"❓", correct:false}
+          ], explain:"Digital footprints follow you — admissions officers, employers, and others can look up your online history years later."}
+      ]
+    },
+    "digital-literacy": {
+      label: "Digital Literacy",
+      rounds: [
+        { prompt: "What is a \"digital footprint\"?",
+          choices: [
+            {label:"A type of computer virus", icon:"🦠", correct:false},
+            {label:"The trail of information you leave behind online", icon:"👣", correct:true},
+            {label:"A video game", icon:"🎮", correct:false},
+            {label:"Your Wi-Fi password", icon:"🔑", correct:false}
+          ], explain:"Everything you post, like, or search leaves a trail — that trail is your digital footprint."},
+        { prompt: "Which of these is a strong, safe password?",
+          choices: [
+            {label:"123456", icon:"❌", correct:false},
+            {label:"password", icon:"❌", correct:false},
+            {label:"Tigers$Love8Pizza!", icon:"✅", correct:true},
+            {label:"yourname2024", icon:"❌", correct:false}
+          ], explain:"Strong passwords mix letters, numbers, and symbols, and avoid obvious personal info."},
+        { prompt: "Before posting a photo of a friend online, you should always...",
+          choices: [
+            {label:"Post it right away", icon:"📤", correct:false},
+            {label:"Ask your friend for permission first", icon:"🙋", correct:true},
+            {label:"Add a filter", icon:"🎨", correct:false},
+            {label:"Tag their exact location", icon:"📍", correct:false}
+          ], explain:"Asking first protects your friend's privacy and their own digital footprint."},
+        { prompt: "You get a message: \"You won a free iPhone! Click here NOW!\" What should you do?",
+          choices: [
+            {label:"Click it right away", icon:"👆", correct:false},
+            {label:"Ignore or delete it", icon:"🗑️", correct:true},
+            {label:"Reply asking for more info", icon:"💬", correct:false},
+            {label:"Share it with a friend", icon:"➡️", correct:false}
+          ], explain:"Too-good-to-be-true offers like this are almost always scams — never click, just delete."},
+        { prompt: "What does \"netiquette\" mean?",
+          choices: [
+            {label:"A brand of Wi-Fi router", icon:"📶", correct:false},
+            {label:"The rules for being polite and respectful online", icon:"🤝", correct:true},
+            {label:"A social media app", icon:"📱", correct:false},
+            {label:"An internet speed test", icon:"⚡", correct:false}
+          ], explain:"Netiquette is just good manners applied to texts, comments, chats, and emails."},
+        { prompt: "Which of these counts as cyberbullying?",
+          choices: [
+            {label:"Complimenting someone's post", icon:"👍", correct:false},
+            {label:"Repeatedly sending someone mean or threatening messages", icon:"⚠️", correct:true},
+            {label:"Sharing your own artwork", icon:"🎨", correct:false},
+            {label:"Reporting a broken link", icon:"🔗", correct:false}
+          ], explain:"Repeated, targeted meanness online is cyberbullying, even if it 'was just a joke.'"},
+        { prompt: "Using someone else's words or work without giving them credit is called...",
+          choices: [
+            {label:"Citing", icon:"📖", correct:false},
+            {label:"Plagiarism", icon:"🚫", correct:true},
+            {label:"Editing", icon:"✏️", correct:false},
+            {label:"Formatting", icon:"🗂️", correct:false}
+          ], explain:"Plagiarism means passing someone else's work off as your own — always give credit."},
+        { prompt: "Which source is most likely trustworthy for school research?",
+          choices: [
+            {label:"A blog post with no listed author", icon:"❓", correct:false},
+            {label:"A .gov or .edu site that cites its sources", icon:"✅", correct:true},
+            {label:"A random forum comment", icon:"💬", correct:false},
+            {label:"A meme page", icon:"🖼️", correct:false}
+          ], explain:"Reliable sources are transparent about who wrote them and back up their claims with evidence."},
+        { prompt: "A stranger online asks for your home address. You should...",
+          choices: [
+            {label:"Give it if they seem nice", icon:"😊", correct:false},
+            {label:"Never share it, and tell a trusted adult", icon:"🛑", correct:true},
+            {label:"Ask why they want it first", icon:"❓", correct:false},
+            {label:"Give a fake one as a joke", icon:"🤪", correct:false}
+          ], explain:"Personal info like your address should never go to strangers online — tell a trusted adult right away."},
+        { prompt: "What does two-factor authentication (2FA) help protect?",
+          choices: [
+            {label:"Your battery life", icon:"🔋", correct:false},
+            {label:"Your account's security", icon:"🔒", correct:true},
+            {label:"Your internet speed", icon:"⚡", correct:false},
+            {label:"Your screen brightness", icon:"🔆", correct:false}
+          ], explain:"2FA adds a second lock (like a code sent to your phone) so a password alone isn't enough to break in."},
+        { prompt: "You get a friend request from someone you don't know. What's the safest move?",
+          choices: [
+            {label:"Accept — everyone does that", icon:"✅", correct:false},
+            {label:"Decline, or ask a trusted adult first", icon:"🙋", correct:true},
+            {label:"Accept and share your schedule", icon:"📅", correct:false},
+            {label:"Ignore it and hope it goes away", icon:"🙈", correct:false}
+          ], explain:"When you don't know someone in real life, it's safest to decline or check with a trusted adult first."},
+        { prompt: "Before sharing a shocking news story, what should you check first?",
+          choices: [
+            {label:"Nothing — just share it fast", icon:"⚡", correct:false},
+            {label:"Whether it's from a credible, verified source", icon:"🔍", correct:true},
+            {label:"How many likes it already has", icon:"👍", correct:false},
+            {label:"Whether the picture is funny", icon:"😂", correct:false}
+          ], explain:"Checking the source first helps stop misinformation from spreading."},
+        { prompt: "Which of these is an example of \"oversharing\" online?",
+          choices: [
+            {label:"Posting your favorite color", icon:"🎨", correct:false},
+            {label:"Posting your home address and daily schedule", icon:"🚨", correct:true},
+            {label:"Posting a book review", icon:"📚", correct:false},
+            {label:"Posting about a hobby", icon:"⚽", correct:false}
+          ], explain:"Sharing exact location and routine details online can put your safety at risk."},
+        { prompt: "What's the safest way to keep track of an important password?",
+          choices: [
+            {label:"Write it on a sticky note on your monitor", icon:"📝", correct:false},
+            {label:"Use a trusted password manager", icon:"🔐", correct:true},
+            {label:"Use the same password everywhere", icon:"♻️", correct:false},
+            {label:"Text it to a friend", icon:"💬", correct:false}
+          ], explain:"A password manager keeps passwords strong, unique, and secure without you having to memorize them all."},
+        { prompt: "Before clicking a link in an email, what should you check?",
+          choices: [
+            {label:"The color of the email", icon:"🎨", correct:false},
+            {label:"The sender's real address and where the link actually leads", icon:"🔎", correct:true},
+            {label:"What time it was sent", icon:"🕐", correct:false},
+            {label:"The font used", icon:"🔤", correct:false}
+          ], explain:"Scam emails often fake the sender's name — always check the real address and hover over links first."}
+      ]
+    },
+    "excel-e03-c1": {
+      label: "Tech 9-12 · E03 Excel ① Grid, Formats & SUM (after L3)",
+      rounds: [
+        { prompt: "What is the correct address for the cell in column C, row 8?",
+          choices: [
+            {label:"8C", icon:"🔢", correct:false},
+            {label:"CR8", icon:"🔤", correct:false},
+            {label:"C8", icon:"📍", correct:true},
+            {label:"Row 8 C", icon:"📏", correct:false}
+          ], explain:"Column letter FIRST, then row number: C8."},
+        { prompt: "How many cells are in the range A1:A4?",
+          choices: [
+            {label:"4", icon:"4️⃣", correct:true},
+            {label:"2", icon:"2️⃣", correct:false},
+            {label:"1", icon:"1️⃣", correct:false},
+            {label:"5", icon:"5️⃣", correct:false}
+          ], explain:"The colon means 'through': A1, A2, A3, A4 = 4 cells."},
+        { prompt: "Where can you see what is REALLY inside a cell, even after it is formatted?",
+          choices: [
+            {label:"The Name Box", icon:"📍", correct:false},
+            {label:"The sheet tab", icon:"📑", correct:false},
+            {label:"The ribbon", icon:"🎀", correct:false},
+            {label:"The formula bar", icon:"📝", correct:true}
+          ], explain:"The formula bar shows the real value or formula. Formatting only changes the look."},
+        { prompt: "You type 0.15 and format the cell as Percentage. What does it show?",
+          choices: [
+            {label:"0.15%", icon:"🤔", correct:false},
+            {label:"15%", icon:"📊", correct:true},
+            {label:"150%", icon:"📈", correct:false},
+            {label:"1.5%", icon:"🔍", correct:false}
+          ], explain:"Percentage multiplies by 100 for the display only: 0.15 shows as 15%."},
+        { prompt: "A date in your sheet shows ##### instead of the date. Why?",
+          choices: [
+            {label:"The column is too narrow", icon:"↔️", correct:true},
+            {label:"The date is wrong", icon:"📅", correct:false},
+            {label:"Excel is broken", icon:"💥", correct:false},
+            {label:"You need a formula", icon:"🧮", correct:false}
+          ], explain:"##### just means 'I don't fit!' Double-click the column border to widen it."},
+        { prompt: "Every Excel formula must start with which symbol?",
+          choices: [
+            {label:"+", icon:"➕", correct:false},
+            {label:"#", icon:"#️⃣", correct:false},
+            {label:"$", icon:"💲", correct:false},
+            {label:"=", icon:"🟰", correct:true}
+          ], explain:"No equals sign = Excel thinks you typed plain text."},
+        { prompt: "Which formula adds up the cells B2 through B6?",
+          choices: [
+            {label:"=ADD(B2:B6)", icon:"➕", correct:false},
+            {label:"=SUM(B2:B6)", icon:"Σ", correct:true},
+            {label:"SUM(B2-B6)", icon:"➖", correct:false},
+            {label:"=B2:B6", icon:"❓", correct:false}
+          ], explain:"=SUM( range ) adds a whole range. The colon means 'through'."},
+        { prompt: "Why is =B2+B3 better than typing =5+3?",
+          choices: [
+            {label:"It looks fancier", icon:"✨", correct:false},
+            {label:"Excel only accepts letters", icon:"🔤", correct:false},
+            {label:"The answer updates by itself when B2 or B3 changes", icon:"🔄", correct:true},
+            {label:"It makes the cell bold", icon:"🅱️", correct:false}
+          ], explain:"Cell references keep formulas live. Change a number and every formula using it updates."},
+        { prompt: "What does =AVERAGE(B2:B8) do?",
+          choices: [
+            {label:"Finds the biggest number", icon:"🏆", correct:false},
+            {label:"Counts the cells", icon:"🔢", correct:false},
+            {label:"Adds the numbers only", icon:"➕", correct:false},
+            {label:"Adds the numbers, then divides by how many there are", icon:"➗", correct:true}
+          ], explain:"AVERAGE = total ÷ how many. It finds the typical amount."},
+        { prompt: "What does dragging the small square at the corner of a cell (the fill handle) do?",
+          choices: [
+            {label:"Copies the formula to the next cells and adjusts the addresses", icon:"🧲", correct:true},
+            {label:"Deletes the cell", icon:"🗑️", correct:false},
+            {label:"Changes the font", icon:"🔠", correct:false},
+            {label:"Locks the cell", icon:"🔒", correct:false}
+          ], explain:"The fill handle copies a formula and moves its range for each new row or column."}
+      ]
+    },
+    "excel-e03-c2": {
+      label: "Tech 9-12 · E03 Excel ② Formulas, Help, Sort & Filter (after L7)",
+      rounds: [
+        { prompt: "Which function finds the FASTEST race time in a list of times?",
+          choices: [
+            {label:"MAX", icon:"⬆️", correct:false},
+            {label:"COUNT", icon:"🔢", correct:false},
+            {label:"MIN", icon:"⬇️", correct:true},
+            {label:"SUM", icon:"Σ", correct:false}
+          ], explain:"In a race the fastest time is the SMALLEST number, so MIN."},
+        { prompt: "10 cells: 8 have numbers and 2 say \"absent\". What does COUNT give?",
+          choices: [
+            {label:"8", icon:"8️⃣", correct:true},
+            {label:"10", icon:"🔟", correct:false},
+            {label:"2", icon:"2️⃣", correct:false},
+            {label:"0", icon:"0️⃣", correct:false}
+          ], explain:"COUNT only counts cells with numbers. Words and blanks are skipped."},
+        { prompt: "A1 is 65. What does =IF(A1>=70,\"Pass\",\"Try again\") show?",
+          choices: [
+            {label:"Pass", icon:"✅", correct:false},
+            {label:"65", icon:"6️⃣", correct:false},
+            {label:"#NAME?", icon:"⚠️", correct:false},
+            {label:"Try again", icon:"🔁", correct:true}
+          ], explain:"65 is not >= 70, so the test is FALSE and Excel shows the FALSE answer."},
+        { prompt: "=IF(A1>5,Yes,\"No\") gives #NAME?. What is wrong?",
+          choices: [
+            {label:"The 5 needs quotes", icon:"5️⃣", correct:false},
+            {label:"Yes needs quotation marks", icon:"💬", correct:true},
+            {label:"IF must be lowercase", icon:"🔡", correct:false},
+            {label:"There are too many brackets", icon:"🧩", correct:false}
+          ], explain:"Words inside a formula always need \"quotation marks\". Numbers never do."},
+        { prompt: "When does AND give TRUE?",
+          choices: [
+            {label:"When BOTH tests are true", icon:"✌️", correct:true},
+            {label:"When at least one test is true", icon:"☝️", correct:false},
+            {label:"When both tests are false", icon:"🚫", correct:false},
+            {label:"Always", icon:"♾️", correct:false}
+          ], explain:"AND is strict: every test inside it must be TRUE."},
+        { prompt: "What does the error #DIV/0! mean?",
+          choices: [
+            {label:"A function name is misspelled", icon:"🔤", correct:false},
+            {label:"The column is too narrow", icon:"↔️", correct:false},
+            {label:"A word is where a number should be", icon:"📝", correct:false},
+            {label:"You divided by zero or by an empty cell", icon:"➗", correct:true}
+          ], explain:"Fill the empty cell (or fix the zero) the formula is dividing by."},
+        { prompt: "A formula multiplies a price by a cell that says \"twelve\". What error appears?",
+          choices: [
+            {label:"#DIV/0!", icon:"➗", correct:false},
+            {label:"#VALUE!", icon:"⚠️", correct:true},
+            {label:"#REF!", icon:"🔗", correct:false},
+            {label:"#####", icon:"↔️", correct:false}
+          ], explain:"#VALUE! means Excel found the wrong kind of data — a word where it needed a number."},
+        { prompt: "Your formula shows an error. What is the BEST first move?",
+          choices: [
+            {label:"Delete the whole sheet", icon:"🗑️", correct:false},
+            {label:"Restart the computer", icon:"🔌", correct:false},
+            {label:"Read the error, then search it in Help", icon:"🔎", correct:true},
+            {label:"Copy a friend's answer", icon:"👀", correct:false}
+          ], explain:"READ → SEARCH → FIX → CHECK. Help (or the Search box at the top) explains every error."},
+        { prompt: "Sorting a price column from LARGEST to SMALLEST is called…",
+          choices: [
+            {label:"Ascending", icon:"⬆️", correct:false},
+            {label:"Filtering", icon:"🧹", correct:false},
+            {label:"Custom", icon:"🎛️", correct:false},
+            {label:"Descending", icon:"⬇️", correct:true}
+          ], explain:"Descending = biggest first (or Z → A). Ascending = smallest first (or A → Z)."},
+        { prompt: "What happens to the rows a filter does not show?",
+          choices: [
+            {label:"They are hidden until you clear the filter", icon:"🙈", correct:true},
+            {label:"They are deleted forever", icon:"🗑️", correct:false},
+            {label:"They move to a new sheet", icon:"📄", correct:false},
+            {label:"They turn red", icon:"🟥", correct:false}
+          ], explain:"Filters only hide rows. Sort & Filter → Clear brings everything back."},
+        { prompt: "You want to sort by Genre, and INSIDE each genre by Rating. Which tool?",
+          choices: [
+            {label:"Sort Ascending", icon:"⬆️", correct:false},
+            {label:"Filter", icon:"🧹", correct:false},
+            {label:"Custom Sort with Add Level", icon:"🎛️", correct:true},
+            {label:"COUNT", icon:"🔢", correct:false}
+          ], explain:"Custom Sort lets you add a second level: first by Genre, then by Rating."}
+      ]
+    },
+    "excel-e03-c3": {
+      label: "Tech 9-12 · E03 Excel ③ Charts, Protection & Sharing (after L10)",
+      rounds: [
+        { prompt: "Which chart is best for showing how something CHANGES over time?",
+          choices: [
+            {label:"Pie", icon:"🥧", correct:false},
+            {label:"Text box", icon:"🗒️", correct:false},
+            {label:"Line", icon:"📈", correct:true},
+            {label:"Bar with long names", icon:"📊", correct:false}
+          ], explain:"Line charts show change over time — week to week, month to month."},
+        { prompt: "When should you use a pie chart?",
+          choices: [
+            {label:"When the parts make ONE whole", icon:"🥧", correct:true},
+            {label:"Any time you have numbers", icon:"🔢", correct:false},
+            {label:"To show change over time", icon:"📈", correct:false},
+            {label:"To compare 20 different items", icon:"📊", correct:false}
+          ], explain:"Pie = slices of one whole, like how a budget is split up."},
+        { prompt: "You want to explain what your chart shows, right next to it. What do you add?",
+          choices: [
+            {label:"A comment", icon:"💬", correct:false},
+            {label:"A filter", icon:"🧹", correct:false},
+            {label:"A new sheet", icon:"📄", correct:false},
+            {label:"A text box (Insert → Shapes → Text Box)", icon:"🗒️", correct:true}
+          ], explain:"A chart SHOWS, a text box EXPLAINS."},
+        { prompt: "What is the legend on a chart?",
+          choices: [
+            {label:"The chart's title", icon:"🏷️", correct:false},
+            {label:"The key that shows which color is which data", icon:"🗝️", correct:true},
+            {label:"The numbers on the side", icon:"📏", correct:false},
+            {label:"A comment", icon:"💬", correct:false}
+          ], explain:"The legend tells the reader which color belongs to which series (e.g. Grade 9, Grade 10)."},
+        { prompt: "You want a cell to turn red AUTOMATICALLY when money left is below 0. Which feature?",
+          choices: [
+            {label:"Conditional formatting", icon:"🚦", correct:true},
+            {label:"Fill color", icon:"🎨", correct:false},
+            {label:"Cell protection", icon:"🔒", correct:false},
+            {label:"Sort", icon:"↕️", correct:false}
+          ], explain:"Conditional formatting watches the numbers and changes the look by itself."},
+        { prompt: "Where do you turn on sheet protection in Excel for the web?",
+          choices: [
+            {label:"Home → Bold", icon:"🅱️", correct:false},
+            {label:"Insert → Chart", icon:"📊", correct:false},
+            {label:"Data → Sort", icon:"↕️", correct:false},
+            {label:"Review → Manage Protection", icon:"🔒", correct:true}
+          ], explain:"Review → Manage Protection → turn ON Protect sheet, then add the ranges people may edit."},
+        { prompt: "After you protect a sheet, which cells should stay editable?",
+          choices: [
+            {label:"The formula cells", icon:"🧮", correct:false},
+            {label:"Only the input cells people need to type in", icon:"✍️", correct:true},
+            {label:"The title", icon:"🏷️", correct:false},
+            {label:"None — no one can type at all", icon:"🚫", correct:false}
+          ], explain:"Protect the formulas, leave only the input cells open."},
+        { prompt: "In a shared file, how do you make sure a classmate SEES your comment?",
+          choices: [
+            {label:"Type in capital letters", icon:"🔠", correct:false},
+            {label:"Make the cell red", icon:"🟥", correct:false},
+            {label:"Type @ and their name in the comment", icon:"📣", correct:true},
+            {label:"Email the file", icon:"✉️", correct:false}
+          ], explain:"An @mention sends them a notification."},
+        { prompt: "You need to see WHO changed cell E14, WHAT it was before, and WHEN. Which tool?",
+          choices: [
+            {label:"Version History", icon:"🗂️", correct:false},
+            {label:"Conditional formatting", icon:"🚦", correct:false},
+            {label:"Filter", icon:"🧹", correct:false},
+            {label:"Show Changes", icon:"🕵️", correct:true}
+          ], explain:"Show Changes lists each edit: who, what (old → new) and when. Right-click a cell → Show Changes for just that cell."},
+        { prompt: "The whole file got messed up. You want it back exactly how it was yesterday. Which tool?",
+          choices: [
+            {label:"Version History", icon:"🗂️", correct:true},
+            {label:"Show Changes", icon:"🕵️", correct:false},
+            {label:"Undo once", icon:"↩️", correct:false},
+            {label:"Protect sheet", icon:"🔒", correct:false}
+          ], explain:"Version History keeps whole snapshots of the file you can open or restore."}
+      ]
+    }
+  }
+};
+let currentUnit=null, roundIdx=0, score=0;
+
+function showPicker(){
+  document.getElementById('pickerCard').style.display='block';
+  document.getElementById('scorebar').style.display='none';
+  document.getElementById('gameCard').style.display='none';
+  document.getElementById('endCard').style.display='none';
+  const list = document.getElementById('unitList');
+  list.innerHTML='';
+  Object.entries(CONFIG.units).forEach(([key, unit])=>{
+    const btn = document.createElement('button');
+    btn.className='unitBtn';
+    btn.innerHTML = `${unit.label}<small>${unit.rounds.length} rounds</small>`;
+    btn.onclick = ()=>{ currentUnit = unit; startUnit(); };
+    list.appendChild(btn);
+  });
+}
+
+function startUnit(){
+  roundIdx=0; score=0;
+  document.getElementById('pickerCard').style.display='none';
+  document.getElementById('scorebar').style.display='block';
+  document.getElementById('gameCard').style.display='block';
+  document.getElementById('endCard').style.display='none';
+  document.getElementById('roundTotal').textContent = currentUnit.rounds.length;
+  loadRound();
+}
+
+function loadRound(){
+  const item = currentUnit.rounds[roundIdx];
+  document.getElementById('roundNum').textContent = roundIdx+1;
+  document.getElementById('score').textContent = score;
+  document.getElementById('prompt').textContent = item.prompt;
+  document.getElementById('explain').textContent = '';
+  document.getElementById('nextBtn').style.display='none';
+  const box = document.getElementById('choices');
+  box.innerHTML='';
+  item.choices.forEach((c,i)=>{
+    const btn = document.createElement('button');
+    btn.className='choice';
+    btn.innerHTML = `<span class="icon">${c.icon}</span><span>${c.label}</span>`;
+    btn.onclick = ()=>selectChoice(i);
+    box.appendChild(btn);
+  });
+}
+
+function selectChoice(i){
+  const item = currentUnit.rounds[roundIdx];
+  const buttons = document.querySelectorAll('#choices .choice');
+  buttons.forEach(b=>b.disabled=true);
+  if(item.choices[i].correct){
+    buttons[i].classList.add('correct');
+    score++;
+    document.getElementById('score').textContent = score;
+  } else {
+    buttons[i].classList.add('wrong');
+    buttons.forEach((b,idx)=>{ if(item.choices[idx].correct) b.classList.add('correct'); });
+  }
+  document.getElementById('explain').textContent = item.explain;
+  document.getElementById('nextBtn').style.display='inline-block';
+}
+
+document.getElementById('nextBtn').onclick = ()=>{
+  roundIdx++;
+  if(roundIdx < currentUnit.rounds.length){ loadRound(); }
+  else {
+    document.getElementById('gameCard').style.display='none';
+    document.getElementById('scorebar').style.display='none';
+    document.getElementById('endCard').style.display='block';
+    document.getElementById('finalScore').textContent = `You scored ${score} / ${currentUnit.rounds.length}`;
+  }
+};
+
+document.getElementById('restartBtn').onclick = ()=>{ startUnit(); };
+document.getElementById('switchBtn').onclick = showPicker;
+
+showPicker();
+</script>
+</body>
+</html>
