@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Balloon Pop Typing</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: one-screen game. Top bar with score and clock, sky play area fills the rest, panels float centered over the sky. Single daytime-sky look in both themes. */
+:root {
+  --sky: #D3EAF7;
+  --sky-deep: #B7DAEE;
+  --cloud: #F4FAFD;
+  --ink: #18303F;
+  --ink-soft: #4C6676;
+  --panel: #FFFFFF;
+  --line: #A9C7D8;
+  --accent: #E8592B;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #FDE3D8;
+  --good: #1F8A57;
+  --font-display: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+  --font-key: "Atkinson Hyperlegible", Verdana, system-ui, sans-serif;
+  color-scheme: light;
+}
+html, body { height: 100%; margin: 0; }
+[hidden] { display: none !important; }
+body {
+  background: var(--sky);
+  color: var(--ink);
+  font-family: var(--font-key);
+  overflow: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.app { height: 100%; display: flex; flex-direction: column; }
+.bar {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding-block: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: var(--panel);
+  border-bottom: 2px solid var(--line);
+}
+.brand { font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; line-height: 1; margin-right: auto; }
+.brand span { color: var(--accent); }
+.stat { display: flex; flex-direction: column; align-items: center; min-width: 64px; }
+.stat b { font-family: var(--font-display); font-size: 1.45rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.stat small { font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+.iconbtn {
+  font: 700 .9rem var(--font-key); color: var(--ink);
+  background: var(--panel); border: 2px solid var(--line); border-radius: 10px;
+  padding: 7px 12px; cursor: pointer;
+}
+.iconbtn:focus-visible, .btn:focus-visible, .choice input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+.sky { position: relative; flex: 1; overflow: hidden; background: var(--sky); }
+.cloud { position: absolute; background: var(--cloud); border-radius: 999px; opacity: .9; }
+.cloud::before, .cloud::after { content: ""; position: absolute; background: var(--cloud); border-radius: 50%; }
+.cloud::before { width: 55%; height: 160%; left: 15%; top: -70%; }
+.cloud::after { width: 40%; height: 130%; right: 12%; top: -45%; }
+.ground { position: absolute; left: 0; right: 0; bottom: 0; height: 18px; background: var(--sky-deep); }
+
+.balloon {
+  position: absolute; left: 0; top: 0;
+  display: flex; flex-direction: column; align-items: center;
+  will-change: transform;
+}
+.balloon .body {
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50% 50% 48% 48% / 55% 55% 45% 45%;
+  border: 3px solid rgba(24, 48, 63, .35);
+  font-family: var(--font-key); font-weight: 700; color: var(--ink);
+  white-space: nowrap;
+}
+.balloon .knot { width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; margin-top: -2px; }
+.balloon .string { width: 2px; height: 34px; background: var(--ink-soft); opacity: .5; }
+.balloon .done { opacity: .3; }
+.balloon.target .body { border-color: var(--ink); border-width: 4px; }
+.balloon.pop { animation: pop .22s ease-out forwards; }
+@keyframes pop { to { transform: var(--t) scale(1.45); opacity: 0; } }
+.plus { position: absolute; font: 800 1.4rem var(--font-display); color: var(--good); pointer-events: none; animation: up .7s ease-out forwards; }
+@keyframes up { to { transform: translateY(-40px); opacity: 0; } }
+.shake { animation: shake .25s; }
+@keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+.overlay {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  padding: 16px max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px));
+  overflow-y: auto;
+}
+.card {
+  background: var(--panel); border: 2px solid var(--line); border-radius: 22px;
+  padding: 24px; width: 100%; max-width: 560px;
+  display: flex; flex-direction: column; gap: 16px;
+  box-shadow: 0 10px 0 var(--sky-deep);
+}
+.card h1, .card h2 { font-family: var(--font-display); font-weight: 800; line-height: 1.05; margin: 0; text-wrap: balance; }
+.card h1 { font-size: clamp(2rem, 6vw, 2.8rem); }
+.card h2 { font-size: 1.9rem; }
+.card p { margin: 0; line-height: 1.5; color: var(--ink-soft); }
+.group { display: flex; flex-direction: column; gap: 8px; }
+.group > span { font-size: .78rem; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-soft); font-weight: 700; }
+.choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+.choice { position: relative; cursor: pointer; }
+.choice input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.choice span {
+  display: flex; flex-direction: column; gap: 2px; height: 100%; box-sizing: border-box;
+  border: 2px solid var(--line); border-radius: 12px; padding: 8px 10px;
+  font-weight: 700; font-size: .98rem;
+}
+.choice small { font-weight: 400; font-size: .78rem; color: var(--ink-soft); letter-spacing: .03em; }
+.choice input:checked + span { border-color: var(--accent); background: var(--accent-soft); }
+.btn {
+  font: 800 1.35rem var(--font-display); color: var(--accent-ink); background: var(--accent);
+  border: 0; border-radius: 14px; padding: 12px 18px; cursor: pointer;
+  box-shadow: 0 5px 0 #B23F18;
+}
+.btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #B23F18; }
+.btn.alt { background: var(--panel); color: var(--ink); border: 2px solid var(--line); box-shadow: 0 5px 0 var(--line); }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.row .btn { flex: 1; min-width: 150px; }
+.hint { font-size: .85rem; color: var(--ink-soft); }
+.big { font: 800 4.2rem var(--font-display); line-height: 1; color: var(--accent); font-variant-numeric: tabular-nums; }
+.stars { font-size: 2.2rem; letter-spacing: .15em; color: #E0A800; }
+.stars .off { color: var(--line); }
+.results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
+.results div { border: 2px solid var(--line); border-radius: 12px; padding: 8px 4px; }
+.results b { display: block; font: 800 1.6rem var(--font-display); font-variant-numeric: tabular-nums; }
+.results small { font-size: .74rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .05em; }
+.note { border: 2px dashed var(--line); border-radius: 12px; padding: 10px 12px; font-size: .95rem; }
+.paused-msg { font-family: var(--font-display); }
+@media (max-width: 480px) {
+  .stat { min-width: 50px; }
+  .brand { font-size: 1.1rem; width: 100%; }
+  .card { padding: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .balloon.pop, .plus, .shake { animation-duration: .01s; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="bar" id="bar">
+    <div class="brand">Balloon <span>Pop</span></div>
+    <div class="stat"><b id="sPopped">0</b><small>Popped</small></div>
+    <div class="stat"><b id="sAcc">100%</b><small>Correct</small></div>
+    <div class="stat"><b id="sTime">1:00</b><small>Time</small></div>
+    <button class="iconbtn" id="soundBtn" type="button" aria-pressed="false">Sound: off</button>
+    <button class="iconbtn" id="pauseBtn" type="button">Pause</button>
+  </div>
+
+  <div class="sky" id="sky">
+    <div class="cloud" style="width:150px;height:40px;left:8%;top:14%"></div>
+    <div class="cloud" style="width:110px;height:30px;left:62%;top:8%"></div>
+    <div class="cloud" style="width:180px;height:46px;left:72%;top:46%"></div>
+    <div class="cloud" style="width:120px;height:32px;left:20%;top:62%"></div>
+    <div class="ground"></div>
+    <div id="field"></div>
+
+    <div class="overlay" id="startScreen">
+      <form class="card" id="setup">
+        <h1>Balloon Pop</h1>
+        <p>Type the letter on a balloon to pop it. Keep your fingers on the home row and come back home after every key.</p>
+        <div class="group">
+          <span>Keys</span>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="level" id="lv1" value="1" checked><span>Level 1<small>Home row + E I R U</small></span></label>
+            <label class="choice"><input type="radio" name="level" id="lv2" value="2"><span>Level 2<small>Adds T Y W O Q P</small></span></label>
+            <label class="choice"><input type="radio" name="level" id="lv3" value="3"><span>Level 3<small>Adds V B N M C</small></span></label>
+            <label class="choice"><input type="radio" name="level" id="lv4" value="4"><span>Level 4<small>All letters</small></span></label>
+          </div>
+        </div>
+        <div class="group">
+          <span>Balloons show</span>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="mode" id="mLetters" value="letters" checked><span>Letters<small>One key per balloon</small></span></label>
+            <label class="choice"><input type="radio" name="mode" id="mWords" value="words"><span>Words<small>Type the whole word</small></span></label>
+          </div>
+        </div>
+        <div class="group">
+          <span>Speed</span>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="speed" id="spS" value="slow" checked><span>Slow</span></label>
+            <label class="choice"><input type="radio" name="speed" id="spM" value="medium"><span>Medium</span></label>
+            <label class="choice"><input type="radio" name="speed" id="spF" value="fast"><span>Fast</span></label>
+          </div>
+        </div>
+        <div class="group">
+          <span>Round</span>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="round" id="r1" value="60" checked><span>1 minute</span></label>
+            <label class="choice"><input type="radio" name="round" id="r2" value="120"><span>2 minutes</span></label>
+          </div>
+        </div>
+        <button class="btn" type="submit" id="startBtn">Start</button>
+        <p class="hint">Press Enter or tap Start. On a tablet, tap the sky once if the keys stop working.</p>
+      </form>
+    </div>
+
+    <div class="overlay" id="pauseScreen" hidden>
+      <div class="card">
+        <h2 class="paused-msg" id="pauseTitle">Paused</h2>
+        <p id="pauseText">Put your fingers back on the home row.</p>
+        <div class="row">
+          <button class="btn" type="button" id="resumeBtn">Keep playing</button>
+          <button class="btn alt" type="button" id="quitBtn">Change level</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="endScreen" hidden>
+      <div class="card">
+        <h2>Time's up!</h2>
+        <div>
+          <div class="big" id="eBig">0</div>
+          <p>balloons popped</p>
+        </div>
+        <div class="stars" id="eStars" aria-label="Stars"></div>
+        <div class="results">
+          <div><b id="eAcc">0%</b><small>Correct keys</small></div>
+          <div><b id="eAway">0</b><small>Floated away</small></div>
+          <div><b id="eBest">0</b><small>Best here</small></div>
+        </div>
+        <div class="note" id="eNote"></div>
+        <div class="row">
+          <button class="btn" type="button" id="againBtn">Play again</button>
+          <button class="btn alt" type="button" id="changeBtn">Change level</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var KEYS = {
+    1: "asdfghjkleiru",
+    2: "asdfghjkleirutywoqp",
+    3: "asdfghjkleirutywoqpvbnmc",
+    4: "abcdefghijklmnopqrstuvwxyz"
+  };
+  var WORDS = {
+    1: ["sad","dad","lad","fall","ask","glad","hill","shell","real","ride","red","fire","sure","use","hair","dish","fish","side","salad","dark","desk","hike","fair","hear","here","idea","jar","sea","she","his","her","hug","rug","kid","slide","hide","deal","seal"],
+    2: ["type","top","pop","tree","water","play","word","swap","party","power","quiet","queen","story","today","path","sweet","toast","happy","puppy","tiger","pirate","rope","stop","yes","owl","wish","wet","hop","spot","yard"],
+    3: ["van","came","bonus","music","number","banana","monkey","cave","mango","cabin","brave","clam","comic","ocean","bench","moon","camp","vine","bubble","bean","nice","become","cool","mom","bat","cub","nest"],
+    4: ["box","fox","zebra","zoom","pizza","buzz","mix","six","fizz","jazz","lizard","extra","zero","quiz","maze","wax","lazy","taxi","prize","oxen"]
+  };
+  var SPEED = {
+    slow:   { rise: 13, gap: 2.3, max: 3 },
+    medium: { rise: 9,  gap: 1.6, max: 4 },
+    fast:   { rise: 6,  gap: 1.1, max: 5 }
+  };
+  var FILLS = [
+    ["#FFB59C", "#E8592B"], ["#FFD86B", "#D9A400"], ["#8EDDB3", "#2E9E66"],
+    ["#9CC8F5", "#2F7AC7"], ["#D9B0EE", "#9A57BF"], ["#F7A6C4", "#D3457C"]
+  ];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var field = $("field"), sky = $("sky");
+  var st = null, raf = 0, sound = false, audio = null;
+
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function fmt(s) { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
+
+  function show(id) {
+    ["startScreen","pauseScreen","endScreen"].forEach(function (x) { $(x).hidden = x !== id; });
+  }
+
+  function beep(freq, len) {
+    if (!sound) return;
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      var o = audio.createOscillator(), g = audio.createGain();
+      o.type = "triangle"; o.frequency.value = freq;
+      g.gain.setValueAtTime(0.08, audio.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + len);
+      o.connect(g); g.connect(audio.destination); o.start(); o.stop(audio.currentTime + len);
+    } catch (e) {}
+  }
+
+  function settings() {
+    var f = $("setup");
+    return {
+      level: +f.level.value, mode: f.mode.value, speed: f.speed.value, round: +f.round.value
+    };
+  }
+
+  function start() {
+    var s = settings();
+    try { var sv = JSON.stringify(s); store("bp-settings", sv); } catch (e) {}
+    clear();
+    st = {
+      cfg: s, sp: SPEED[s.speed], balloons: [], target: null,
+      popped: 0, right: 0, wrong: 0, away: 0,
+      left: s.round, sinceSpawn: 99, last: performance.now(), running: true, lastX: -999
+    };
+    if (s.mode === "words") st.sp = { rise: st.sp.rise * 1.45, gap: st.sp.gap * 1.5, max: Math.max(2, st.sp.max - 1) };
+    updateBar();
+    show(null);
+    sky.focus && sky.focus();
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(tick);
+  }
+
+  function clear() {
+    field.innerHTML = "";
+  }
+
+  function spawn() {
+    var w = sky.clientWidth, h = sky.clientHeight;
+    var onScreen = st.balloons.map(function (b) { return b.text; });
+    var text, tries = 0;
+    do {
+      text = st.cfg.mode === "letters" ? pick(KEYS[st.cfg.level]) : pick(WORDS[st.cfg.level]);
+      tries++;
+    } while (onScreen.indexOf(text) > -1 && tries < 20);
+    if (st.cfg.mode === "words") {
+      var firsts = st.balloons.map(function (b) { return b.text[0]; });
+      tries = 0;
+      while (firsts.indexOf(text[0]) > -1 && tries < 30) { text = pick(WORDS[st.cfg.level]); tries++; }
+    }
+    var letters = st.cfg.mode === "letters";
+    var bw = letters ? 74 : Math.max(96, text.length * 19 + 40);
+    var bh = letters ? 88 : 80;
+    var x, t2 = 0;
+    do { x = 10 + Math.random() * Math.max(10, w - bw - 20); t2++; } while (Math.abs(x - st.lastX) < bw + 10 && t2 < 15);
+    st.lastX = x;
+    var c = pick(FILLS);
+    var el = document.createElement("div");
+    el.className = "balloon";
+    var body = document.createElement("div");
+    body.className = "body";
+    body.style.width = bw + "px"; body.style.height = bh + "px";
+    body.style.background = c[0];
+    body.style.fontSize = letters ? "40px" : "26px";
+    var spanDone = document.createElement("span"); spanDone.className = "done";
+    var spanLeft = document.createElement("span"); spanLeft.textContent = text;
+    body.appendChild(spanDone); body.appendChild(spanLeft);
+    var knot = document.createElement("div"); knot.className = "knot"; knot.style.borderBottom = "9px solid " + c[1];
+    var str = document.createElement("div"); str.className = "string";
+    el.appendChild(body); el.appendChild(knot); el.appendChild(str);
+    field.appendChild(el);
+    var b = { el: el, done: spanDone, left: spanLeft, text: text, typed: 0, x: x, y: h + 10, w: bw, h: bh + 45, speed: (h + bh + 60) / st.sp.rise, sway: Math.random() * 6.28 };
+    st.balloons.push(b);
+    place(b);
+  }
+
+  function place(b) {
+    var sx = Math.sin(b.sway) * 6;
+    var t = "translate(" + (b.x + sx).toFixed(1) + "px," + b.y.toFixed(1) + "px)";
+    b.el.style.transform = t;
+    b.el.style.setProperty("--t", t);
+  }
+
+  function remove(b) {
+    var i = st.balloons.indexOf(b);
+    if (i > -1) st.balloons.splice(i, 1);
+    if (st.target === b) st.target = null;
+  }
+
+  function popB(b) {
+    remove(b);
+    b.el.classList.add("pop");
+    var plus = document.createElement("div");
+    plus.className = "plus"; plus.textContent = "+1";
+    plus.style.left = (b.x + b.w / 2 - 12) + "px"; plus.style.top = (b.y + 10) + "px";
+    field.appendChild(plus);
+    setTimeout(function () { b.el.remove(); plus.remove(); }, 700);
+    st.popped++;
+    beep(660, 0.12);
+  }
+
+  function tick(now) {
+    if (!st || !st.running) return;
+    var dt = Math.min(0.05, (now - st.last) / 1000);
+    st.last = now;
+    st.left -= dt;
+    st.sinceSpawn += dt;
+    if (st.balloons.length < st.sp.max && st.sinceSpawn >= st.sp.gap && st.left > 1.5) {
+      spawn(); st.sinceSpawn = 0;
+    }
+    st.balloons.slice().forEach(function (b) {
+      b.y -= b.speed * dt;
+      b.sway += dt * 1.6;
+      place(b);
+      if (b.y + b.h < 0) { remove(b); b.el.remove(); st.away++; }
+    });
+    updateBar();
+    if (st.left <= 0) { end(); return; }
+    raf = requestAnimationFrame(tick);
+  }
+
+  function updateBar() {
+    if (!st) return;
+    $("sPopped").textContent = st.popped;
+    var total = st.right + st.wrong;
+    $("sAcc").textContent = total ? Math.round(st.right / total * 100) + "%" : "100%";
+    $("sTime").textContent = fmt(st.left);
+  }
+
+  function wrongKey() {
+    st.wrong++;
+    beep(180, 0.15);
+    sky.classList.remove("shake"); void sky.offsetWidth; sky.classList.add("shake");
+  }
+
+  function onKey(e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (!$("startScreen").hidden) {
+      if (e.key === "Enter") { e.preventDefault(); start(); }
+      return;
+    }
+    if (!$("endScreen").hidden) {
+      if (e.key === "Enter") { e.preventDefault(); start(); }
+      return;
+    }
+    if (!st) return;
+    if (e.key === "Escape") { e.preventDefault(); if (st.running) pause("Paused"); else resume(); return; }
+    if (!st.running) return;
+    if (e.key === " " ) { e.preventDefault(); return; }
+    if (!e.key || e.key.length !== 1) return;
+    var k = e.key.toLowerCase();
+    if (!/[a-z]/.test(k)) return;
+    e.preventDefault();
+    if (st.cfg.mode === "letters") {
+      var match = st.balloons.filter(function (b) { return b.text === k; }).sort(function (a, b) { return a.y - b.y; })[0];
+      if (match) { st.right++; popB(match); } else wrongKey();
+    } else {
+      var t = st.target;
+      if (!t) {
+        t = st.balloons.filter(function (b) { return b.text[0] === k; }).sort(function (a, b) { return a.y - b.y; })[0];
+        if (!t) { wrongKey(); updateBar(); return; }
+        st.target = t; t.el.classList.add("target");
+      }
+      if (t.text[t.typed] === k) {
+        st.right++; t.typed++;
+        t.done.textContent = t.text.slice(0, t.typed);
+        t.left.textContent = t.text.slice(t.typed);
+        if (t.typed >= t.text.length) popB(t);
+        else beep(520, 0.05);
+      } else wrongKey();
+    }
+    updateBar();
+  }
+
+  function pause(title, text) {
+    if (!st || !st.running) return;
+    st.running = false;
+    cancelAnimationFrame(raf);
+    $("pauseTitle").textContent = title;
+    $("pauseText").textContent = text || "Put your fingers back on the home row.";
+    show("pauseScreen");
+  }
+  function resume() {
+    if (!st) return;
+    st.running = true; st.last = performance.now();
+    show(null);
+    raf = requestAnimationFrame(tick);
+  }
+
+  function end() {
+    st.running = false;
+    cancelAnimationFrame(raf);
+    st.balloons.forEach(function (b) { b.el.remove(); });
+    st.balloons = []; st.target = null;
+    var total = st.right + st.wrong;
+    var acc = total ? Math.round(st.right / total * 100) : 0;
+    var c = st.cfg;
+    var key = "bp-best-" + c.level + "-" + c.mode + "-" + c.speed + "-" + c.round;
+    var best = +(store(key) || 0);
+    if (st.popped > best) { best = st.popped; store(key, String(best)); }
+    var stars = st.popped === 0 ? 0 : acc >= 95 ? 3 : acc >= 85 ? 2 : 1;
+    $("eBig").textContent = st.popped;
+    $("eAcc").textContent = acc + "%";
+    $("eAway").textContent = st.away;
+    $("eBest").textContent = best;
+    var sh = "";
+    for (var i = 0; i < 3; i++) sh += i < stars ? "&#9733;" : '<span class="off">&#9733;</span>';
+    $("eStars").innerHTML = sh;
+    $("eStars").setAttribute("aria-label", stars + " of 3 stars");
+    var tip = acc >= 95 ? "Great accuracy. Try the next speed up." : acc >= 85 ? "Nice work. Slow down a little to get 3 stars." : "Go slower and use the right finger for each key.";
+    $("eNote").textContent = "Sticky note: Balloon Pop, Level " + c.level + " " + c.mode + ", " + c.speed + ": " + st.popped + " balloons, " + acc + "% correct. " + tip;
+    show("endScreen");
+  }
+
+  $("setup").addEventListener("submit", function (e) { e.preventDefault(); start(); });
+  $("pauseBtn").addEventListener("click", function () { if (st && st.running) pause("Paused"); else if (st && $("pauseScreen").hidden === false) resume(); });
+  $("resumeBtn").addEventListener("click", resume);
+  $("quitBtn").addEventListener("click", function () { if (st) { st.running = false; st.balloons.forEach(function (b) { b.el.remove(); }); } clear(); show("startScreen"); });
+  $("againBtn").addEventListener("click", start);
+  $("changeBtn").addEventListener("click", function () { clear(); show("startScreen"); });
+  $("soundBtn").addEventListener("click", function () {
+    sound = !sound;
+    this.textContent = "Sound: " + (sound ? "on" : "off");
+    this.setAttribute("aria-pressed", String(sound));
+    if (sound) beep(660, 0.1);
+  });
+  window.addEventListener("keydown", onKey);
+  window.addEventListener("blur", function () { pause("Paused", "Tap Keep playing, then put your fingers back on the home row."); });
+  sky.addEventListener("pointerdown", function () { window.focus(); });
+
+  try {
+    var saved = JSON.parse(store("bp-settings") || "null");
+    if (saved) {
+      ["level","mode","speed","round"].forEach(function (n) {
+        var el = document.querySelector('input[name="' + n + '"][value="' + saved[n] + '"]');
+        if (el) el.checked = true;
+      });
+    }
+  } catch (e) {}
+
+  (function demo() {
+    var w = sky.clientWidth || 600, h = sky.clientHeight || 400;
+    ["f","j","d","k"].forEach(function (t, i) {
+      var c = FILLS[i];
+      var el = document.createElement("div");
+      el.className = "balloon";
+      el.setAttribute("aria-hidden", "true");
+      el.innerHTML = '<div class="body" style="width:74px;height:88px;font-size:40px;background:' + c[0] + '"><span>' + t + '</span></div><div class="knot" style="border-bottom:9px solid ' + c[1] + '"></div><div class="string"></div>';
+      var x = i % 2 === 0 ? 0.05 * w + i * 20 : w - 0.05 * w - 74 - i * 10;
+      var y = [0.12, 0.2, 0.55, 0.6][i] * h;
+      el.style.transform = "translate(" + x + "px," + y + "px)";
+      field.appendChild(el);
+    });
+  })();
+})();
+</script>
+</body>
+</html>
